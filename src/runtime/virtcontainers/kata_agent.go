@@ -18,7 +18,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/docker/go-units"
 	"github.com/kata-containers/kata-containers/src/runtime/pkg/device/api"
 	"github.com/kata-containers/kata-containers/src/runtime/pkg/device/config"
 	"github.com/kata-containers/kata-containers/src/runtime/pkg/device/drivers"
@@ -38,8 +37,6 @@ import (
 	"context"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/opencontainers/runtime-spec/specs-go"
-	"github.com/opencontainers/selinux/go-selinux"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 	"google.golang.org/grpc/codes"
@@ -84,6 +81,7 @@ type customRequestTimeoutKeyType struct{}
 
 var (
 	checkRequestTimeout              = 30 * time.Second
+	createContainerRequestTimeout    = 60 * time.Second
 	defaultRequestTimeout            = 60 * time.Second
 	imageRequestTimeout              = 60 * time.Second
 	remoteRequestTimeout             = 300 * time.Second
@@ -2232,6 +2230,8 @@ func (k *kataAgent) getReqContext(ctx context.Context, reqName string) (newCtx c
 		newCtx, cancel = context.WithTimeout(ctx, checkRequestTimeout)
 	case grpcPullImageRequest:
 		newCtx, cancel = context.WithTimeout(ctx, imageRequestTimeout)
+	case grpcCreateContainerRequest:
+		newCtx, cancel = context.WithTimeout(ctx, createContainerRequestTimeout)
 	default:
 		var requestTimeout = defaultRequestTimeout
 
