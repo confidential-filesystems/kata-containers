@@ -374,6 +374,10 @@ func (k *kataAgent) init(ctx context.Context, sandbox *Sandbox, config KataAgent
 	k.Logger().WithFields(logrus.Fields{
 		"imageRequestTimeout": fmt.Sprintf("%+v", imageRequestTimeout),
 	}).Info("The imageRequestTimeout has been set ")
+	createContainerRequestTimeout = time.Duration(sandbox.config.CreateContainerTimeout) * time.Second
+	k.Logger().WithFields(logrus.Fields{
+		"createContainerRequestTimeout": fmt.Sprintf("%+v", createContainerRequestTimeout),
+	}).Info("The createContainerRequestTimeout has been set ")
 
 	return disableVMShutdown, nil
 }

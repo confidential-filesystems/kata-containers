@@ -294,6 +294,9 @@ const (
 
 	// SealedSecretEnabled is a sandbox annotaion that enables the sealed secret feature.
 	SealedSecretEnabled = kataAnnotRuntimePrefix + "sealed_secret_enabled"
+
+	// CreateContainerTimeout is a sandbox annotaion that sets the create container timeout.
+	CreateContainerTimeout = kataAnnotRuntimePrefix + "create_container_timeout"
 )
 
 // Agent related annotations

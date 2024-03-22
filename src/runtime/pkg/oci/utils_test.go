@@ -812,6 +812,7 @@ func TestAddRuntimeAnnotations(t *testing.T) {
 	ocispec.Annotations[vcAnnotations.InterNetworkModel] = "macvtap"
 	ocispec.Annotations[vcAnnotations.ImageRequestTimeout] = "100"
 	ocispec.Annotations[vcAnnotations.SealedSecretEnabled] = "true"
+	ocispec.Annotations[vcAnnotations.CreateContainerTimeout] = "100"
 
 	addAnnotations(ocispec, &config, runtimeConfig)
 	assert.Equal(config.DisableGuestSeccomp, true)
@@ -821,6 +822,7 @@ func TestAddRuntimeAnnotations(t *testing.T) {
 	assert.Equal(config.ImageRequestTimeout, uint64(100))
 	assert.Equal(config.SealedSecretEnabled, true)
 
+	assert.Equal(config.CreateContainerTimeout, uint64(100))
 }
 
 func TestRegexpContains(t *testing.T) {
