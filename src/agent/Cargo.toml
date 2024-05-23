@@ -75,7 +75,7 @@ openssl = { version = "0.10.38", features = ["vendored"] }
 
 # Image pull/decrypt
 #image-rs = { git = "https://github.com/confidential-containers/guest-components", tag = "v0.8.0", default-features = false, features = [
-image-rs = { path = "../../../guest-components/image-rs", default-features = false, features = [
+image-rs = { path = "../../../coco-guest-components/image-rs", default-features = false, features = [
     "kata-cc-native-tls",
     "verity",
     "signature-cosign",
