@@ -1,0 +1,234 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    io.containerd.cri.runtime-handler: kata-qemu-metadata
+  creationTimestamp: "2024-04-15T06:14:47Z"
+  generateName: fsname-cr-1-metadata-engine-deploy-685bdfcf58-
+  labels:
+    app: fsname-cr-1-metadata-engine-deploy
+    pod-template-hash: 685bdfcf58
+  name: fsname-cr-1-metadata-engine-deploy-685bdfcf58-ps6gq
+  namespace: default
+  ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: fsname-cr-1-metadata-engine-deploy-685bdfcf58
+      uid: 7ea70c3c-ff3c-4531-8af6-d4d4385e5b63
+  resourceVersion: "25542545"
+  uid: a9a3b63c-23e0-4d62-b72f-d11fe376ca25
+spec:
+  containers:
+    - env:
+        - name: ALLOW_EMPTY_PASSWORD
+          value: "yes"
+        - name: REDIS_TLS_ENABLED
+          value: "yes"
+        - name: REDIS_TLS_PORT
+          value: "6379"
+        - name: REDIS_TLS_CERT_FILE
+          value: /etc/cfs/conf/certs/server.cert
+        - name: REDIS_TLS_KEY_FILE
+          value: /etc/cfs/conf/certs/server.key
+        - name: REDIS_TLS_CA_FILE
+          value: /etc/cfs/conf/certs/ca
+      image: hub.confidentialfilesystems.com/cc/redis:6.0.12
+      imagePullPolicy: Always
+      name: metadata-db
+      ports:
+        - containerPort: 6379
+          name: http
+          protocol: TCP
+      resources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
+      securityContext:
+        privileged: true
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+        - mountPath: /etc/cfs/conf
+          name: metadata-db
+        - mountPath: /bitnami/redis/data
+          name: metadata-db-data
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          name: kube-api-access-52kh6
+          readOnly: true
+    - command:
+        - sh
+        - -c
+        - sleep 100000
+      env:
+        - name: ME_FILESYSTEM_NAME
+          value: fsname-cr-1
+        - name: controllerCrpToken
+          value: eyJhbGciOiJFUzI1NiIsImtpZCI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvZWNzay8xNDE0NzE5MjcwIiwidHlwIjoiSldUIiwidmVyIjoiMSJ9.eyJpYXQiOjE3MTMxNjExNDAsImF1dGhvcml6ZWRfcmVzIjpbeyJleHAiOjAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvZWNzay8qIn0seyJleHAiOjE3MTMxNjQ3NDAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvY2VydHMvY2xpZW50In0seyJleHAiOjE3MTMxNjQ3NDAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvY2VydHMvc2VydmVyIn0seyJleHAiOjE3MTMxNjQ3NDAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvZnNyay8wIn1dLCJydW50aW1lX3JlcyI6bnVsbH0.BvfI7iO9MvMCWAy-PrFYh0O0RPnF8ePYfvm0c9SQma7juv3IoZRFI1bynJV5SMywKgUn4srHnVMjfAnfJcA49Q
+        - name: controllerAttestationReport
+          value: eyJfYXV0aG9yX2tleV9lbiI6MCwiX3Jlc2VydmVkXzAiOjAsIl9yZXNlcnZlZF8xIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJfcmVzZXJ2ZWRfMiI6MCwiX3Jlc2VydmVkXzMiOjAsIl9yZXNlcnZlZF80IjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJhdXRob3Jfa2V5X2RpZ2VzdCI6WzAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwiY2hpcF9pZCI6WzAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJjb21taXR0ZWRfYnVpbGQiOjAsImNvbW1pdHRlZF9tYWpvciI6MCwiY29tbWl0dGVkX21pbm9yIjowLCJjb21taXR0ZWRfdGNiIjp7Il9yZXNlcnZlZCI6WzAsMCwwLDBdLCJib290bG9hZGVyIjowLCJtaWNyb2NvZGUiOjAsInNucCI6MCwidGVlIjowfSwiY3VycmVudF9idWlsZCI6MCwiY3VycmVudF9tYWpvciI6MCwiY3VycmVudF9taW5vciI6MCwiY3VycmVudF90Y2IiOnsiX3Jlc2VydmVkIjpbMCwwLDAsMF0sImJvb3Rsb2FkZXIiOjAsIm1pY3JvY29kZSI6MCwic25wIjowLCJ0ZWUiOjB9LCJmYW1pbHlfaWQiOlswLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwiZ3Vlc3Rfc3ZuIjo0Mjk0OTY3Mjk1LCJob3N0X2RhdGEiOlswLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJpZF9rZXlfZGlnZXN0IjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJpbWFnZV9pZCI6WzAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJsYXVuY2hfdGNiIjp7Il9yZXNlcnZlZCI6WzAsMCwwLDBdLCJib290bG9hZGVyIjowLCJtaWNyb2NvZGUiOjAsInNucCI6MCwidGVlIjowfSwibWVhc3VyZW1lbnQiOls2MCwxMDUsMTUsMTkzLDk1LDEzMSw4OCwxMDYsODksMjM1LDEzMyw2MywzLDE3NiwyMTcsNzMsMTYsMTA2LDEyMiwxNTQsNDIsMjU0LDE0NCwxNzQsMjM4LDE2MywyMCw3OCwxOTMsNzQsMzcsODQsMjEwLDIzMSwxLDkwLDIzOCwyMTIsMjIsMTIyLDE3Niw3NiwxOTEsMjI4LDE1MCwxNzIsMTU4LDVdLCJwbGF0X2luZm8iOjAsInBvbGljeSI6MCwicmVwb3J0X2RhdGEiOlsxNywxMzIsMTg4LDEzNiwyMywxMDUsNjEsMTM4LDIwNSwzMCwxMTUsODksNTgsMjA1LDE5MiwxODMsNTAsMzksNzUsMTEwLDY5LDEsMjI4LDU1LDE4Niw1Niw2LDE4Myw0NSwxOTcsMTU2LDIyLDE2NSwxNDgsNjksMTU2LDM4LDEyNSwyMzQsMjAyLDE5Niw1MCwxMjYsMjM5LDE2MywxMTIsMjIxLDE1NCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwicmVwb3J0X2lkIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwicmVwb3J0X2lkX21hIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwicmVwb3J0ZWRfdGNiIjp7Il9yZXNlcnZlZCI6WzAsMCwwLDBdLCJib290bG9hZGVyIjowLCJtaWNyb2NvZGUiOjAsInNucCI6MCwidGVlIjowfSwic2lnX2FsZ28iOjAsInNpZ25hdHVyZSI6eyJfcmVzZXJ2ZWQiOlswLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJyIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJzIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdfSwidmVyc2lvbiI6MCwidm1wbCI6MH0=
+        - name: controllerCertChain
+          value: W3siY2VydF90eXBlIjoiRW1wdHkiLCJkYXRhIjpbXX1d
+      image: hub.confidentialfilesystems.com/cc/filesystem-manager:v0.0.1-d3
+      imagePullPolicy: Always
+      name: fs-manager
+      ports:
+        - containerPort: 52370
+          name: http
+          protocol: TCP
+      resources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+        - mountPath: /etc/cfs/conf
+          name: fs-manager
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          name: kube-api-access-52kh6
+          readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  initContainers:
+    - command:
+        - sh
+        - -c
+        - echo The cfs is starting!
+      env:
+        - name: controllerCrpToken
+          value: eyJhbGciOiJFUzI1NiIsImtpZCI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvZWNzay8xNDE0NzE5MjcwIiwidHlwIjoiSldUIiwidmVyIjoiMSJ9.eyJpYXQiOjE3MTMxNjExNDAsImF1dGhvcml6ZWRfcmVzIjpbeyJleHAiOjAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvZWNzay8qIn0seyJleHAiOjE3MTMxNjQ3NDAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvY2VydHMvY2xpZW50In0seyJleHAiOjE3MTMxNjQ3NDAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvY2VydHMvc2VydmVyIn0seyJleHAiOjE3MTMxNjQ3NDAsInJlcyI6ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvZnNyay8wIn1dLCJydW50aW1lX3JlcyI6eyJmcy1tYW5hZ2VyIjp7ImticzovLy8weGFjMDYxOGYwYjEwNWZhZjE3YjhlMTM3MGY5OGZlYmRiMmUxZmZjNWIvY2VydHMvY2xpZW50IjoiL3J1bi9rYXRhLWNvbnRhaW5lcnMvc2FuZGJveC9lcGhlbWVyYWwvZnMtbWFuYWdlci9jZXJ0cy8iLCJrYnM6Ly8vMHhhYzA2MThmMGIxMDVmYWYxN2I4ZTEzNzBmOThmZWJkYjJlMWZmYzViL2NlcnRzL3NlcnZlciI6Ii9ydW4va2F0YS1jb250YWluZXJzL3NhbmRib3gvZXBoZW1lcmFsL2ZzLW1hbmFnZXIvY2VydHMvIiwia2JzOi8vLzB4YWMwNjE4ZjBiMTA1ZmFmMTdiOGUxMzcwZjk4ZmViZGIyZTFmZmM1Yi9mc3JrLzAiOiIvcnVuL2thdGEtY29udGFpbmVycy9zYW5kYm94L2VwaGVtZXJhbC9mcy1tYW5hZ2VyL2tleXMvZnNyayJ9LCJtZXRhZGF0YS1kYiI6eyJrYnM6Ly8vMHhhYzA2MThmMGIxMDVmYWYxN2I4ZTEzNzBmOThmZWJkYjJlMWZmYzViL2NlcnRzL3NlcnZlciI6Ii9ydW4va2F0YS1jb250YWluZXJzL3NhbmRib3gvZXBoZW1lcmFsL21ldGFkYXRhLWRiL2NlcnRzLyJ9fX0.o5yN6fHeASTvvhwFLvfeRvARnKPAKhHvpNjEjHBljxBkJHo3JwLO2vSQQzYWE-RbPAsqMeDf518aI2DHWr-7fA
+        - name: controllerAttestationReport
+          value: eyJfYXV0aG9yX2tleV9lbiI6MCwiX3Jlc2VydmVkXzAiOjAsIl9yZXNlcnZlZF8xIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJfcmVzZXJ2ZWRfMiI6MCwiX3Jlc2VydmVkXzMiOjAsIl9yZXNlcnZlZF80IjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJhdXRob3Jfa2V5X2RpZ2VzdCI6WzAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwiY2hpcF9pZCI6WzAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJjb21taXR0ZWRfYnVpbGQiOjAsImNvbW1pdHRlZF9tYWpvciI6MCwiY29tbWl0dGVkX21pbm9yIjowLCJjb21taXR0ZWRfdGNiIjp7Il9yZXNlcnZlZCI6WzAsMCwwLDBdLCJib290bG9hZGVyIjowLCJtaWNyb2NvZGUiOjAsInNucCI6MCwidGVlIjowfSwiY3VycmVudF9idWlsZCI6MCwiY3VycmVudF9tYWpvciI6MCwiY3VycmVudF9taW5vciI6MCwiY3VycmVudF90Y2IiOnsiX3Jlc2VydmVkIjpbMCwwLDAsMF0sImJvb3Rsb2FkZXIiOjAsIm1pY3JvY29kZSI6MCwic25wIjowLCJ0ZWUiOjB9LCJmYW1pbHlfaWQiOlswLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwiZ3Vlc3Rfc3ZuIjo0Mjk0OTY3Mjk1LCJob3N0X2RhdGEiOlswLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJpZF9rZXlfZGlnZXN0IjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJpbWFnZV9pZCI6WzAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJsYXVuY2hfdGNiIjp7Il9yZXNlcnZlZCI6WzAsMCwwLDBdLCJib290bG9hZGVyIjowLCJtaWNyb2NvZGUiOjAsInNucCI6MCwidGVlIjowfSwibWVhc3VyZW1lbnQiOls2MCwxMDUsMTUsMTkzLDk1LDEzMSw4OCwxMDYsODksMjM1LDEzMyw2MywzLDE3NiwyMTcsNzMsMTYsMTA2LDEyMiwxNTQsNDIsMjU0LDE0NCwxNzQsMjM4LDE2MywyMCw3OCwxOTMsNzQsMzcsODQsMjEwLDIzMSwxLDkwLDIzOCwyMTIsMjIsMTIyLDE3Niw3NiwxOTEsMjI4LDE1MCwxNzIsMTU4LDVdLCJwbGF0X2luZm8iOjAsInBvbGljeSI6MCwicmVwb3J0X2RhdGEiOls4MCwxMTksMjM3LDEyMyw0NCwxMyw5MCw4MiwxODgsMTc4LDU1LDE3LDIwNSw1NiwxMDcsMTMwLDE2LDIzNyw1MiwxOTUsMTYzLDMzLDE2NCwyNDMsMTcsMTMzLDE5NiwxMzUsMTkxLDE1MSwxOTUsMTUzLDMsMTYzLDE4OCwyMDMsMjksMjQzLDk1LDksODIsMjMyLDE4OSw5MywxMDMsNjgsMTU4LDIwOSwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwicmVwb3J0X2lkIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwicmVwb3J0X2lkX21hIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwXSwicmVwb3J0ZWRfdGNiIjp7Il9yZXNlcnZlZCI6WzAsMCwwLDBdLCJib290bG9hZGVyIjowLCJtaWNyb2NvZGUiOjAsInNucCI6MCwidGVlIjowfSwic2lnX2FsZ28iOjAsInNpZ25hdHVyZSI6eyJfcmVzZXJ2ZWQiOlswLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJyIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdLCJzIjpbMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDAsMCwwLDBdfSwidmVyc2lvbiI6MCwidm1wbCI6MH0=
+        - name: controllerCertChain
+          value: W3siY2VydF90eXBlIjoiRW1wdHkiLCJkYXRhIjpbXX1d
+      image: hub.confidentialfilesystems.com/cc/busybox:1.36.1
+      imagePullPolicy: IfNotPresent
+      name: cfs-init
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          name: kube-api-access-52kh6
+          readOnly: true
+  nodeName: cloud-mz73-lm1-000
+  nodeSelector:
+    katacontainers.io/kata-runtime: "true"
+  overhead:
+    cpu: 250m
+    memory: 160Mi
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  runtimeClassName: kata-qemu-metadata
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+  volumes:
+    - emptyDir:
+        medium: Memory
+        sizeLimit: 10Mi
+      name: metadata-db
+    - emptyDir:
+        medium: Memory
+        sizeLimit: 10Mi
+      name: fs-manager
+    - hostPath:
+        path: /tmp/data/local-storage/fsname-cr-1
+        type: DirectoryOrCreate
+      name: metadata-db-data
+    - name: kube-api-access-52kh6
+      projected:
+        defaultMode: 420
+        sources:
+          - serviceAccountToken:
+              expirationSeconds: 3607
+              path: token
+          - configMap:
+              items:
+                - key: ca.crt
+                  path: ca.crt
+              name: kube-root-ca.crt
+          - downwardAPI:
+              items:
+                - fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.namespace
+                  path: namespace
+status:
+  conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2024-04-15T06:14:52Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2024-04-15T06:14:55Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2024-04-15T06:14:55Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2024-04-15T06:14:47Z"
+      status: "True"
+      type: PodScheduled
+  containerStatuses:
+    - containerID: containerd://3ca8ece01839c43e10637cf1a86bfd586bc3427f3d31510a21d2fed4036aacf3
+      image: hub.confidentialfilesystems.com/cc/filesystem-manager:v0.0.1-d3
+      imageID: hub.confidentialfilesystems.com/cc/filesystem-manager@sha256:c6e2cb3ebfb80e00466071734a695d6879fadfa79c30f9d54c261885c3158c2e
+      lastState: {}
+      name: fs-manager
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2024-04-15T06:14:54Z"
+    - containerID: containerd://34d14cfbecf690ed2bbba9b0fbb754ab15f6813488b139d709b5de602bc4f595
+      image: hub.confidentialfilesystems.com/cc/redis:6.0.12
+      imageID: hub.confidentialfilesystems.com/cc/redis@sha256:81b2abb27d8855357eed735e2272888aafa3eab315ba6615a5eb38bb336063d4
+      lastState: {}
+      name: metadata-db
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2024-04-15T06:14:53Z"
+  hostIP: 10.11.35.45
+  initContainerStatuses:
+    - containerID: containerd://22f135f57851d8f3c8a13a9a176d8d893bf5235bc95afa6e4cd19f98250e54a6
+      image: hub.confidentialfilesystems.com/cc/busybox:1.36.1
+      imageID: hub.confidentialfilesystems.com/cc/busybox@sha256:db16cd196b8a37ba5f08414e6f6e71003d76665a5eac160cb75ad3759d8b3e29
+      lastState: {}
+      name: cfs-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: containerd://22f135f57851d8f3c8a13a9a176d8d893bf5235bc95afa6e4cd19f98250e54a6
+          exitCode: 0
+          finishedAt: "2024-04-15T06:14:52Z"
+          reason: Completed
+          startedAt: "2024-04-15T06:14:52Z"
+  phase: Running
+  podIP: 10.244.0.234
+  podIPs:
+    - ip: 10.244.0.234
+  qosClass: Burstable
+  startTime: "2024-04-15T06:14:47Z"

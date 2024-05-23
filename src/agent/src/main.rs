@@ -403,6 +403,9 @@ fn init_attestation_agent(logger: &Logger, _config: &AgentConfig) -> Result<()> 
 
     env::set_var("OCICRYPT_KEYPROVIDER_CONFIG", config_path);
 
+    info!(logger, "confilesystem11 - init_attestation_agent(): _config.aa_attester = {:?}", _config.aa_attester);
+    info!(logger, "confilesystem11 - init_attestation_agent(): _config.rest_api = {:?}", _config.rest_api);
+
     // The Attestation Agent will run for the duration of the guest.
     launch_process(
         logger,
@@ -421,20 +424,23 @@ fn init_attestation_agent(logger: &Logger, _config: &AgentConfig) -> Result<()> 
     .map_err(|e| anyhow!("launch_process {} failed: {:?}", AA_PATH, e))?;
 
     #[cfg(feature = "confidential-data-hub")]
-    {
+    if _config.aa_attester == image_rs::extra::token::ATTESTER_CONTROLLER
+        || _config.aa_attester == image_rs::extra::token::ATTESTER_METADATA {
+        info!(logger, "confilesystem11 - init_attestation_agent(): -> RUN confidential-data-hub");
         if let Err(e) = launch_process(
             logger,
             CDH_PATH,
-            &vec![],
+            &vec!["--aa_attester", &_config.aa_attester],
             CDH_SOCKET,
             DEFAULT_LAUNCH_PROCESS_TIMEOUT,
         ) {
             error!(logger, "launch_process {} failed: {:?}", CDH_PATH, e);
         } else if !_config.rest_api.is_empty() {
+            info!(logger, "confilesystem11 - init_attestation_agent(): -> RUN api-server-rest");
             if let Err(e) = launch_process(
                 logger,
                 API_SERVER_PATH,
-                &vec!["--features", &_config.rest_api],
+                &vec!["--features", &_config.rest_api, "--aa_attester", &_config.aa_attester],
                 "",
                 0,
             ) {
@@ -480,7 +486,7 @@ fn launch_process(
     if !unix_socket_path.is_empty() && Path::new(unix_socket_path).exists() {
         fs::remove_file(unix_socket_path)?;
     }
-    Command::new(path).args(args).spawn()?;
+    Command::new(path).args(args).env("RUST_LOG", "debug").spawn()?;
     if !unix_socket_path.is_empty() && timeout_secs > 0 {
         wait_for_path_to_exist(logger, unix_socket_path, timeout_secs)?;
     }

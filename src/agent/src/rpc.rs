@@ -116,6 +116,12 @@ const ERR_INVALID_BLOCK_SIZE: &str = "Invalid block size";
 const ERR_NO_LINUX_FIELD: &str = "Spec does not contain linux field";
 const ERR_NO_SANDBOX_PIDNS: &str = "Sandbox does not have sandbox_pidns";
 
+const CONTROLLER_CRP_TOKEN_KEY: &str = "controllerCrpToken";
+const CONTROLLER_ATTESTATION_REPORT_KEY: &str = "controllerAttestationReport";
+const CONTROLLER_CERT_CHAIN_KEY: &str = "controllerCertChain";
+//const WORKLOAD_ATTESTATION_REPORT: &str = "workloadAttestationReport";
+//const WORKLOAD_CERT_CHAIN: &str = "workloadCertChain";
+
 // IPTABLES_RESTORE_WAIT_SEC is the timeout value provided to iptables-restore --wait. Since we
 // don't expect other writers to iptables, we don't expect contention for grabbing the iptables
 // filesystem lock. Based on this, 5 seconds seems a resonable timeout period in case the lock is
@@ -170,6 +176,168 @@ pub fn verify_cid(id: &str) -> Result<()> {
     }
 }
 
+// add confilesystem
+fn get_ee_data(oci: &mut Spec, aa_attester: &str) -> Result<image_rs::extra::token::ExternalExtraData> {
+    //info!(sl(), "confilesystem2 - get_ee_data(): spec = {:?}", &oci);
+    info!(sl(), "confilesystem7 - get_ee_data() -> aa_attester = {:?}", aa_attester);
+    let mut container_name = "";
+    if let Some(cn) = oci.annotations.get("io.kubernetes.cri.container-name") {
+        container_name = cn;
+    }
+    info!(sl(), "confilesystem12 - get_ee_data(): oci.annotations[io.kubernetes.cri.container-name] = {:?}, container_name = {:?}",
+            oci.annotations.get("io.kubernetes.cri.container-name"), container_name);
+
+    let mut ee_data = image_rs::extra::token::ExternalExtraData::new(
+        "".to_string(), "".to_string(), "".to_string(),
+        aa_attester.to_string(), container_name.to_string(), false);
+    if container_name.len() == 0 {
+        return Ok(ee_data);
+    }
+
+    match aa_attester {
+        image_rs::extra::token::ATTESTER_CONTROLLER => {
+            return Ok(ee_data);
+        },
+        image_rs::extra::token::ATTESTER_METADATA => {},
+        image_rs::extra::token::ATTESTER_WORKLOAD => {},
+        _ => {
+            return Err(anyhow!("confilesystem7 - aa_attester must be set to controller/metadata/workload"));
+        },
+    }
+
+    let pod_containers_share_dir = image_rs::extra::token::POD_CONTAINERS_SHARE_DIR;
+
+    // controller_crp_token
+    let controller_crp_token_file = pod_containers_share_dir.to_owned() + CONTROLLER_CRP_TOKEN_KEY;
+    let controller_crp_token_res = match fs::read_to_string(controller_crp_token_file.clone()) {
+        Ok(content) => {
+            info!(sl(), "confilesystem7 - read_to_string({:?}) -> content = {:?}", controller_crp_token_file, content);
+            Ok(content)
+        },
+        Err(e) => {
+            info!(sl(), "confilesystem7 - read_to_string({:?}) -> e = {:?}", controller_crp_token_file, e.to_string());
+            if e.kind() == std::io::ErrorKind::NotFound {
+                Ok("".to_string())
+            } else {
+                Err(anyhow!("confilesystem7 - read_to_string({:?}) -> e = {:?}", controller_crp_token_file, e.to_string()))
+            }
+        }
+    };
+    ee_data.controller_crp_token = controller_crp_token_res.expect("confilesystem7 - fail to get controller crp token");
+    info!(sl(), "confilesystem7 - get_ee_data() -> ee_data.controller_crp_token = {:?}", ee_data.controller_crp_token);
+
+    // controller_attestation_report
+    let controller_attestation_report_file = pod_containers_share_dir.to_owned() + CONTROLLER_ATTESTATION_REPORT_KEY;
+    let controller_attestation_report_res = match fs::read_to_string(controller_attestation_report_file.clone()) {
+        Ok(content) => {
+            info!(sl(), "confilesystem7 - read_to_string({:?}) -> content = {:?}", controller_attestation_report_file, content);
+            Ok(content)
+        },
+        Err(e) => {
+            info!(sl(), "confilesystem7 - read_to_string({:?}) -> e = {:?}", controller_attestation_report_file, e.to_string());
+            if e.kind() == std::io::ErrorKind::NotFound {
+                Ok("".to_string())
+            } else {
+                Err(anyhow!("confilesystem7 - read_to_string({:?}) -> e = {:?}", controller_attestation_report_file, e.to_string()))
+            }
+        }
+    };
+    ee_data.controller_attestation_report = controller_attestation_report_res.expect("confilesystem7 - fail to get controller attestation report");
+    info!(sl(), "confilesystem7 - get_ee_data() -> ee_data.controller_attestation_report = {:?}", ee_data.controller_attestation_report);
+
+    // controller_cert_chain
+    let controller_cert_chain_file = pod_containers_share_dir.to_owned() + CONTROLLER_CERT_CHAIN_KEY;
+    let controller_cert_chain_res = match fs::read_to_string(controller_cert_chain_file.clone()) {
+        Ok(content) => {
+            info!(sl(), "confilesystem7 - read_to_string({:?}) -> content = {:?}", controller_cert_chain_file, content);
+            Ok(content)
+        },
+        Err(e) => {
+            info!(sl(), "confilesystem7 - read_to_string({:?}) -> e = {:?}", controller_cert_chain_file, e.to_string());
+            if e.kind() == std::io::ErrorKind::NotFound {
+                Ok("".to_string())
+            } else {
+                Err(anyhow!("confilesystem7 - read_to_string({:?}) -> e = {:?}", controller_cert_chain_file, e.to_string()))
+            }
+        }
+    };
+    ee_data.controller_cert_chain = controller_cert_chain_res.expect("confilesystem7 - fail to get controller cert chain");
+    info!(sl(), "confilesystem7 - get_ee_data() -> ee_data.controller_cert_chain = {:?}", ee_data.controller_cert_chain);
+
+    //
+    if ee_data.controller_attestation_report.len() == 0 {
+        let process = oci
+            .process
+            .as_mut()
+            .ok_or_else(|| anyhow!("confilesystem2 - Spec didn't contain process field"))?;
+        for env in process.env.iter_mut() {
+            //info!(sl(), "confilesystem2 - do_create_container(): env = {:?}", env);
+            let (key, value) = env.split_once('=').unwrap_or(("", ""));
+            match key {
+                CONTROLLER_CRP_TOKEN_KEY => {
+                    ee_data.controller_crp_token = value.to_string();
+                    info!(sl(), "confilesystem2 - get_ee_data(): ee_data.controller_crp_token = {:?}", ee_data.controller_crp_token);
+                },
+                CONTROLLER_ATTESTATION_REPORT_KEY => {
+                    ee_data.controller_attestation_report = value.to_string();
+                    info!(sl(), "confilesystem2 - get_ee_data(): ee_data.controller_attestation_report = {:?}", ee_data.controller_attestation_report);
+                },
+                CONTROLLER_CERT_CHAIN_KEY => {
+                    ee_data.controller_cert_chain = value.to_string();
+                    info!(sl(), "confilesystem2 - get_ee_data(): ee_data.controller_cert_chain = {:?}", ee_data.controller_cert_chain);
+                },
+                _ => {}
+            }
+        }
+
+        if ee_data.controller_attestation_report.len() == 0 || ee_data.controller_cert_chain.len() == 0 {
+            return Err(anyhow!("confilesystem7 - ee_data.controller_attestation_report.len() = {:?} || ee_data.controller_cert_chain.len() = {:?}",
+                ee_data.controller_attestation_report.len(), ee_data.controller_cert_chain.len()));
+        }
+
+        let dir_path = Path::new(&controller_crp_token_file).parent().expect("confilesystem6 - fail to get dir");
+        info!(sl(), "confilesystem6 - get_ee_data(): dir_path = {:?}", dir_path);
+        fs::create_dir_all(dir_path).expect("confilesystem6 - fail to create dir");
+
+        let mut file = fs::File::create(controller_crp_token_file.clone())?;
+        file.write_all(ee_data.controller_crp_token.as_bytes())?;
+
+        file = fs::File::create(controller_attestation_report_file.clone())?;
+        file.write_all(ee_data.controller_attestation_report.as_bytes())?;
+
+        file = fs::File::create(controller_cert_chain_file.clone())?;
+        file.write_all(ee_data.controller_cert_chain.as_bytes())?;
+
+        ee_data.is_init_container = true;
+    }
+
+    info!(sl(), "confilesystem12 - get_ee_data(): ee_data.is_init_container = {:?}", ee_data.is_init_container);
+    Ok(ee_data)
+}
+
+// mount --bind --make-shared /run/kata-containers/sandbox/ephemeral /run/kata-containers/sandbox/ephemeral
+#[instrument]
+fn bind_mount_shared(src: &str, dst: &str, logger: &slog::Logger) -> Result<(), anyhow::Error> {
+    /*
+    let src_path = Path::new(src);
+    let dst_path = Path::new(dst);
+
+    baremount(src_path,
+              dst_path,
+              "bind", // bind
+              nix::mount::MsFlags::MS_BIND | nix::mount::MsFlags::MS_SHARED,
+              "", // bind,make-shared
+              logger)
+    */
+
+    //
+    let output = std::process::Command::new("/bin/sh")
+        .arg("/etc/rc.local")
+        .output()?;
+    info!(sl(), "confilesystem14 - bind_mount_shared(): output = {:?}", output);
+    Ok(())
+}
+
 impl AgentService {
     #[instrument]
     async fn do_create_container(
@@ -177,6 +345,7 @@ impl AgentService {
         req: protocols::agent::CreateContainerRequest,
     ) -> Result<()> {
         let cid = req.container_id.clone();
+        info!(sl(), "\n\n\n\n\nconfilesystem9 - do_create_container(): req.container_id = {:?}", cid);
 
         kata_sys_util::validate::verify_id(&cid)?;
 
@@ -262,7 +431,21 @@ impl AgentService {
         // After all those storages have been processed, no matter the order
         // here, the agent will rely on rustjail (using the oci.Mounts
         // list) to bind mount all of them inside the container.
-        let m = add_storages(sl(), req.storages, &self.sandbox, Some(req.container_id)).await?;
+        // add by confilesystem
+        let ee_data = get_ee_data(&mut oci, &crate::AGENT_CONFIG.aa_attester)
+            .expect("confilesystem7 - fail to get ExternalExtraData");
+        // add by confilesystem
+        info!(sl(), "confilesystem6 - create_device(): AGENT_CONFIG.confidential_image_digests = {:?}, AGENT_CONFIG.aa_attester = {:?}",
+            &crate::AGENT_CONFIG.confidential_image_digests, &crate::AGENT_CONFIG.aa_attester);
+        let mut ie_data = ee_data.proc(&crate::AGENT_CONFIG.aa_kbc_params
+            ,&crate::AGENT_CONFIG.confidential_image_digests)
+            .await?;
+            //.expect("confilesystem5 - fail to ee_data.proc( - External - )");
+        info!(sl(), "confilesystem5 - create_device(): ie_data.controller_crp_token    = {:?}", ie_data.controller_crp_token);
+        info!(sl(), "confilesystem5 - create_device(): ie_data.authorized_res = {:?}", ie_data.authorized_res);
+        info!(sl(), "confilesystem5 - create_device(): ie_data.runtime_res = {:?}", ie_data.runtime_res);
+
+        let m = add_storages(sl(), req.storages, &self.sandbox, Some(req.container_id), &mut ie_data).await?;
 
         let mut s = self.sandbox.lock().await;
         s.container_mounts.insert(cid.clone(), m);
@@ -341,6 +524,9 @@ impl AgentService {
         s.update_shared_pidns(&ctr)?;
         s.add_container(ctr);
         info!(sl(), "created container!");
+
+        info!(sl(), "confilesystem9 - do_create_container(): ie_data.container_name = {:?} FINISHED ", ie_data.container_name);
+        ie_data.proc().await?; //.expect("confilesystem5 - fail to ie_data.proc()( - Internal - )");
 
         Ok(())
     }
@@ -1304,7 +1490,8 @@ impl agent_ttrpc::AgentService for AgentService {
                 .map_err(|e| ttrpc_error(ttrpc::Code::INTERNAL, e))?;
         }
 
-        match add_storages(sl(), req.storages, &self.sandbox, None).await {
+        let mut ie_data = image_rs::extra::token::InternalExtraData::init("".to_string(), "".to_string(), "".to_string(), "".to_string(), "".to_string(), false);
+        match add_storages(sl(), req.storages, &self.sandbox, None, &mut ie_data).await {
             Ok(m) => {
                 self.sandbox.lock().await.mounts = m;
             }
@@ -1320,6 +1507,30 @@ impl agent_ttrpc::AgentService for AgentService {
             }
             Err(e) => return Err(ttrpc_error(ttrpc::Code::INTERNAL, e)),
         };
+
+        {
+            let src = "/run/kata-containers/sandbox/ephemeral";
+            let dst = "/run/kata-containers/sandbox/ephemeral";
+            match fs::create_dir_all(src) {
+                Ok(()) => {
+                    info!(sl(), "confilesystem14 - Succ to create_dir_all({:?}, {:?})", src, dst);
+                },
+                Err(err) => {
+                    info!(sl(), "confilesystem14 - Fail to create_dir_all({:?}, {:?}) -> err = {:?}", src, dst, err);
+                    return Err(ttrpc_error(ttrpc::Code::INTERNAL, err))
+                }
+            }
+
+            match bind_mount_shared(src, dst, &sl()) {
+                Ok(()) => {
+                    info!(sl(), "confilesystem14 - Succ to bind_mount_shared({:?}, {:?})", src, dst);
+                },
+                Err(err) => {
+                    info!(sl(), "confilesystem14 - Fail to bind_mount_shared({:?}, {:?}) -> err = {:?}", src, dst, err);
+                    return Err(ttrpc_error(ttrpc::Code::INTERNAL, err))
+                }
+            }
+        }
 
         Ok(Empty::new())
     }

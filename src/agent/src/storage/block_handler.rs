@@ -48,6 +48,7 @@ impl StorageHandler for VirtioBlkMmioHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
@@ -89,6 +90,7 @@ impl StorageHandler for VirtioBlkPciHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
@@ -122,6 +124,7 @@ impl StorageHandler for VirtioBlkCcwHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
@@ -134,6 +137,7 @@ impl StorageHandler for VirtioBlkCcwHandler {
         &self,
         _storage: Storage,
         _ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         Err(anyhow!("CCW is only supported on s390x"))
     }
@@ -161,6 +165,7 @@ impl StorageHandler for ScsiHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
@@ -189,6 +194,7 @@ impl StorageHandler for PmemHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;

@@ -55,6 +55,11 @@ const RO_MASK: u32 = 0o440;
 const EXEC_MASK: u32 = 0o110;
 const MODE_SETGID: u32 = 0o2000;
 
+// Convenience function to obtain the scope logger.
+fn sl() -> slog::Logger {
+    slog_scope::logger().new(o!("subsystem" => "cgroups"))
+}
+
 #[derive(Debug)]
 pub struct StorageContext<'a> {
     cid: &'a Option<String>,
@@ -135,6 +140,7 @@ pub trait StorageHandler: Send + Sync {
         &self,
         storage: Storage,
         ctx: &mut StorageContext,
+        ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>>;
 }
 
@@ -170,11 +176,16 @@ pub async fn add_storages(
     storages: Vec<Storage>,
     sandbox: &Arc<Mutex<Sandbox>>,
     cid: Option<String>,
+    ie_data: &mut image_rs::extra::token::InternalExtraData,
 ) -> Result<Vec<String>> {
     let mut mount_list = Vec::new();
 
+    info!(sl(), "confilesystem13 - add_storages(): ie_data.container_name = {:?}, ie_data.is_init_container = {:?}, storages.len() = {:?}",
+        ie_data.container_name, ie_data.is_init_container, storages.len());
+
     for storage in storages {
         let path = storage.mount_point.clone();
+        info!(sl(), "confilesystem13 - add_storages(): ie_data.container_name = {:?}, path = {:?}", ie_data.container_name, path);
         let state = sandbox.lock().await.add_sandbox_storage(&path).await;
         if state.ref_count().await > 1 {
             if let Some(path) = state.path() {
@@ -195,7 +206,7 @@ pub async fn add_storages(
                 sandbox,
             };
 
-            match handler.create_device(storage, &mut ctx).await {
+            match handler.create_device(storage, &mut ctx, ie_data).await {
                 Ok(device) => {
                     match sandbox
                         .lock()
@@ -260,6 +271,9 @@ pub(crate) fn common_storage_handler(logger: &Logger, storage: &Storage) -> Resu
 // mount_storage performs the mount described by the storage structure.
 #[instrument]
 fn mount_storage(logger: &Logger, storage: &Storage) -> Result<()> {
+    info!(sl(), "confilesystem12 - mount_storage(): storage.source = {:?}, storage.mount_point = {:?}, storage.options = {:?}, storage.fstype = {:?}",
+        storage.source, storage.mount_point, storage.options, storage.fstype);
+
     let logger = logger.new(o!("subsystem" => "mount"));
 
     // There's a special mechanism to create mountpoint from a `sharedfs` instance before

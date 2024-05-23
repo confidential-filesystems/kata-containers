@@ -26,6 +26,7 @@ impl StorageHandler for OverlayfsHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         if storage
             .options
@@ -76,6 +77,7 @@ impl StorageHandler for Virtio9pHandler {
         &self,
         storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         let path = common_storage_handler(ctx.logger, &storage)?;
         new_device(path)
@@ -92,6 +94,7 @@ impl StorageHandler for VirtioFsHandler {
         &self,
         storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         let path = common_storage_handler(ctx.logger, &storage)?;
         new_device(path)

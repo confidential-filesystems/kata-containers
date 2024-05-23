@@ -27,6 +27,8 @@ const CONTAINER_PIPE_SIZE_OPTION: &str = "agent.container_pipe_size";
 const UNIFIED_CGROUP_HIERARCHY_OPTION: &str = "agent.unified_cgroup_hierarchy";
 const CONFIG_FILE: &str = "agent.config_file";
 const AA_KBC_PARAMS: &str = "agent.aa_kbc_params";
+const CONFIDENTIAL_IMAGE_DIGESTS: &str = "agent.confidential_image_digests";
+const AA_ATTESTER: &str = "agent.aa_attester";
 const REST_API_OPTION: &str = "agent.rest_api";
 const HTTPS_PROXY: &str = "agent.https_proxy";
 const NO_PROXY: &str = "agent.no_proxy";
@@ -89,6 +91,8 @@ pub struct AgentConfig {
     pub supports_seccomp: bool,
     pub container_policy_path: String,
     pub aa_kbc_params: String,
+    pub confidential_image_digests: String,
+    pub aa_attester: String,
     pub rest_api: String,
     pub https_proxy: String,
     pub no_proxy: String,
@@ -114,6 +118,8 @@ pub struct AgentConfigBuilder {
     pub endpoints: Option<EndpointsConfig>,
     pub container_policy_path: Option<String>,
     pub aa_kbc_params: Option<String>,
+    pub confidential_image_digests: Option<String>,
+    pub aa_attester: Option<String>,
     pub rest_api: Option<String>,
     pub https_proxy: Option<String>,
     pub no_proxy: Option<String>,
@@ -185,6 +191,8 @@ impl Default for AgentConfig {
             supports_seccomp: rpc::have_seccomp(),
             container_policy_path: String::from(""),
             aa_kbc_params: String::from(""),
+            confidential_image_digests: String::from(""),
+            aa_attester: String::from(""),
             rest_api: String::from(""),
             https_proxy: String::from(""),
             no_proxy: String::from(""),
@@ -223,6 +231,8 @@ impl FromStr for AgentConfig {
         config_override!(agent_config_builder, agent_config, tracing);
         config_override!(agent_config_builder, agent_config, container_policy_path);
         config_override!(agent_config_builder, agent_config, aa_kbc_params);
+        config_override!(agent_config_builder, agent_config, confidential_image_digests);
+        config_override!(agent_config_builder, agent_config, aa_attester);
         config_override!(agent_config_builder, agent_config, rest_api);
         config_override!(agent_config_builder, agent_config, https_proxy);
         config_override!(agent_config_builder, agent_config, no_proxy);
@@ -349,6 +359,8 @@ impl AgentConfig {
             );
 
             parse_cmdline_param!(param, AA_KBC_PARAMS, config.aa_kbc_params, get_string_value);
+            parse_cmdline_param!(param, CONFIDENTIAL_IMAGE_DIGESTS, config.confidential_image_digests, get_string_value);
+            parse_cmdline_param!(param, AA_ATTESTER, config.aa_attester, get_string_value);
             parse_cmdline_param!(param, REST_API_OPTION, config.rest_api, get_string_value);
             parse_cmdline_param!(param, HTTPS_PROXY, config.https_proxy, get_url_value);
             parse_cmdline_param!(param, NO_PROXY, config.no_proxy, get_string_value);
@@ -595,6 +607,8 @@ mod tests {
             tracing: bool,
             container_policy_path: &'a str,
             aa_kbc_params: &'a str,
+            confidential_image_digests: &'a str,
+            aa_attester: &'a str,
             rest_api: &'a str,
             https_proxy: &'a str,
             no_proxy: &'a str,
@@ -620,6 +634,8 @@ mod tests {
                     tracing: false,
                     container_policy_path: "",
                     aa_kbc_params: "",
+                    confidential_image_digests: "",
+                    aa_attester: "",
                     rest_api: "",
                     https_proxy: "",
                     no_proxy: "",

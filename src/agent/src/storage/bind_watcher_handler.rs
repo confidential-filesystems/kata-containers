@@ -23,6 +23,7 @@ impl StorageHandler for BindWatcherHandler {
         &self,
         storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         if let Some(cid) = ctx.cid {
             ctx.sandbox

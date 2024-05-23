@@ -140,7 +140,7 @@ impl ImageService {
     }
 
     /// init atestation agent and read config from AGENT_CONFIG
-    async fn get_security_config(&self) -> Result<String> {
+    pub async fn get_security_config(&self) -> Result<String> {
         let aa_kbc_params = &AGENT_CONFIG.aa_kbc_params;
         // If the attestation-agent is being used, then enable the authenticated credentials support
         info!(
@@ -169,12 +169,15 @@ impl ImageService {
         decrypt_config: &str,
         source_creds: Option<&str>,
         cid: &str,
+        ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<()> {
+        info!(sl(), "confilesystem - image_rpc.common_image_pull()");
+        info!(sl(), "confilesystem1 - common_image_pull(): image = {:?}, decrypt_config = {:?}", image, decrypt_config);
         let res = self
             .image_client
             .lock()
             .await
-            .pull_image(image, bundle_path, &source_creds, &Some(decrypt_config))
+            .pull_image(image, bundle_path, &source_creds, &Some(decrypt_config), ie_data)
             .await;
         match res {
             Ok(image) => {
@@ -204,8 +207,10 @@ impl ImageService {
         image: &str,
         cid: &str,
         image_metadata: &HashMap<String, String>,
+        ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<String> {
         info!(sl(), "image metadata: {:?}", image_metadata);
+        info!(sl(), "confilesystem1 - pull_image_for_container(): image_metadata = {:?}", image_metadata);
         Self::set_proxy_env_vars();
         let is_sandbox = if let Some(value) = image_metadata.get("io.kubernetes.cri.container-type")
         {
@@ -229,7 +234,7 @@ impl ImageService {
 
         let source_creds = None; // You need to determine how to obtain this.
 
-        self.common_image_pull(image, &bundle_path, &decrypt_config, source_creds, cid)
+        self.common_image_pull(image, &bundle_path, &decrypt_config, source_creds, cid, ie_data)
             .await?;
         Ok(format! {"{}/rootfs",bundle_path.display()})
     }
@@ -253,12 +258,14 @@ impl ImageService {
         let decrypt_config = self.get_security_config().await?;
         let source_creds = (!req.source_creds().is_empty()).then(|| req.source_creds());
 
+        let mut ie_data = image_rs::extra::token::InternalExtraData::init("".to_string(), "".to_string(), "".to_string(), "".to_string(), "".to_string(), false);
         self.common_image_pull(
             image,
             &bundle_path,
             &decrypt_config,
             source_creds,
             cid.clone().as_str(),
+            &mut ie_data,
         )
         .await?;
         Ok(image.to_owned())
@@ -285,14 +292,16 @@ impl ImageService {
                     "Image bundle config path: {:?}", image_oci_config_path
                 );
 
+                let debug_log = format!("confilesystem15 - load image bundle: image_oci_config_path = {:?}", image_oci_config_path);
                 let image_oci =
                     oci::Spec::load(image_oci_config_path.to_str().ok_or_else(|| {
+                        info!(sl(), "confilesystem14 - merge_bundle_oci(): Fail to oci::Spec::load(): image_oci_config_path = {:?}", image_oci_config_path);
                         anyhow!(
-                            "Invalid container image OCI config path {:?}",
+                            "confilesystem14 - Invalid container image OCI config path {:?}",
                             image_oci_config_path
                         )
-                    })?)
-                    .context("load image bundle")?;
+                    })?).context(debug_log)?;
+                    //.context("confilesystem15 - load image bundle")?;
 
                 if let Some(container_root) = container_oci.root.as_mut() {
                     if let Some(image_root) = image_oci.root.as_ref() {
@@ -301,7 +310,8 @@ impl ImageService {
                             .join(image_root.path.clone());
                         container_root.path =
                             String::from(root_path.to_str().ok_or_else(|| {
-                                anyhow!("Invalid container image root path {:?}", root_path)
+                                info!(sl(), "confilesystem14 - merge_bundle_oci(): Fail to String::from(): root_path = {:?}", root_path);
+                                anyhow!("confilesystem14 - Invalid container image root path {:?}", root_path)
                             })?);
                     }
                 }

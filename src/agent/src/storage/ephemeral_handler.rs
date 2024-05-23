@@ -40,6 +40,7 @@ impl StorageHandler for EphemeralHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         // hugetlbfs
         if storage.fstype == FS_TYPE_HUGETLB {

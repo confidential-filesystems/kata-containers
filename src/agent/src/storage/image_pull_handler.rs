@@ -15,6 +15,11 @@ use crate::storage::{StorageContext, StorageHandler};
 
 use super::{common_storage_handler, new_device};
 
+// Convenience function to obtain the scope logger.
+fn sl() -> slog::Logger {
+    slog_scope::logger().new(o!("subsystem" => "cgroups"))
+}
+
 #[derive(Debug)]
 pub struct ImagePullHandler {}
 
@@ -28,6 +33,7 @@ impl ImagePullHandler {
                 }
             }
         }
+        info!(sl(), "confilesystem13 - get_image_info(): No image_guest_pull");
         Err(anyhow!("missing Image information for ImagePull volume"))
     }
 }
@@ -39,9 +45,14 @@ impl StorageHandler for ImagePullHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - create_device(): ie_data.container_name = {:?}, ie_data.controller_crp_token.len() = {:?}",
+            ie_data.container_name, ie_data.controller_crp_token.len());
+
         //Currently the image metadata is not used to pulling image in the guest.
         let image_pull_volume = Self::get_image_info(&storage)?;
+        info!(sl(), "confilesystem13 - create_device(): image_pull_volume = {:?}", image_pull_volume);
         debug!(ctx.logger, "image_pull_volume = {:?}", image_pull_volume);
         let image_name = storage.source();
         debug!(ctx.logger, "image_name = {:?}", image_name);
@@ -52,7 +63,7 @@ impl StorageHandler for ImagePullHandler {
             .ok_or_else(|| anyhow!("failed to get container id"))?;
         let image_service = image_rpc::ImageService::singleton().await?;
         let bundle_path = image_service
-            .pull_image_for_container(image_name, &cid, &image_pull_volume.metadata)
+            .pull_image_for_container(image_name, &cid, &image_pull_volume.metadata, ie_data)
             .await?;
 
         storage.source = bundle_path;

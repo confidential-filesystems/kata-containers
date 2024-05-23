@@ -83,6 +83,7 @@ impl StorageHandler for DmVerityHandler {
         &self,
         mut storage: Storage,
         ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         Self::update_source_device(&mut storage, ctx).await?;
         create_mount_destination(&storage.source, &storage.mount_point, "", &storage.fstype)

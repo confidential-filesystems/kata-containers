@@ -26,6 +26,7 @@ impl StorageHandler for LocalHandler {
         &self,
         storage: Storage,
         _ctx: &mut StorageContext,
+        _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
         fs::create_dir_all(&storage.mount_point).context(format!(
             "failed to create dir all {:?}",
