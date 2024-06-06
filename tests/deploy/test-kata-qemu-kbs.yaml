@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: test-kata-qemu-kbs-1
+  name: test-kata-qemu-kbs-1
+  annotations:
+    io.containerd.cri.runtime-handler: kata-qemu-controller
+spec:
+  runtimeClassName: kata-qemu-controller
+  volumes:
+  - name: test-shared-data
+    emptyDir:
+      medium: Memory
+  - name: host-share-v
+    hostPath:
+      path: /run/kata-containers/my-share
+      type: DirectoryOrCreate
+  containers:
+  - name: cfs-kbs-1
+    image: hub.confidentialfilesystems.com:4443/cc/coco-trustee:v0.8.0-filesystem-1
+    imagePullPolicy: Always
+    volumeMounts:
+      - name: host-share-v
+        mountPath: /data/my-share
+      - name: test-shared-data
+        mountPath: /data1
+        mountPropagation: Bidirectional
+    securityContext:
+      privileged: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-kata-qemu-kbs-1-svc
+spec:
+  type: NodePort
+  ports:
+    - name: https-rest
+      port: 11111
+      nodePort: 31111
+      targetPort: 11111
+  selector:
+    app: test-kata-qemu-kbs-1
