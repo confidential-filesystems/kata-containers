@@ -1,6 +1,8 @@
 apiVersion: v1
 kind: Pod
 metadata:
+  labels:
+    app: test-kata-qemu-controller-1
   name: test-kata-qemu-controller-1
   annotations:
     io.containerd.cri.runtime-handler: kata-qemu-controller
@@ -19,7 +21,7 @@ spec:
       type: DirectoryOrCreate
   containers:
   - name: cfs-csi-controller
-    image: hub.confidentialfilesystems.com/cc/cfs-csi-controller:v0.0.1-d5
+    image: hub.confidentialfilesystems.com:4443/cc/coco-trustee:v0.8.0-filesystem-1
     imagePullPolicy: Always
     volumeMounts:
       - name: cfs-csi-controller

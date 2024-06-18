@@ -29,6 +29,7 @@ const CONFIG_FILE: &str = "agent.config_file";
 const AA_KBC_PARAMS: &str = "agent.aa_kbc_params";
 const CONFIDENTIAL_IMAGE_DIGESTS: &str = "agent.confidential_image_digests";
 const AA_ATTESTER: &str = "agent.aa_attester";
+const KBS_LD: &str = "agent.kbs_ld";
 const REST_API_OPTION: &str = "agent.rest_api";
 const HTTPS_PROXY: &str = "agent.https_proxy";
 const NO_PROXY: &str = "agent.no_proxy";
@@ -93,6 +94,7 @@ pub struct AgentConfig {
     pub aa_kbc_params: String,
     pub confidential_image_digests: String,
     pub aa_attester: String,
+    pub kbs_ld: String,
     pub rest_api: String,
     pub https_proxy: String,
     pub no_proxy: String,
@@ -120,6 +122,7 @@ pub struct AgentConfigBuilder {
     pub aa_kbc_params: Option<String>,
     pub confidential_image_digests: Option<String>,
     pub aa_attester: Option<String>,
+    pub kbs_ld: Option<String>,
     pub rest_api: Option<String>,
     pub https_proxy: Option<String>,
     pub no_proxy: Option<String>,
@@ -193,6 +196,7 @@ impl Default for AgentConfig {
             aa_kbc_params: String::from(""),
             confidential_image_digests: String::from(""),
             aa_attester: String::from(""),
+            kbs_ld: String::from(""),
             rest_api: String::from(""),
             https_proxy: String::from(""),
             no_proxy: String::from(""),
@@ -233,6 +237,7 @@ impl FromStr for AgentConfig {
         config_override!(agent_config_builder, agent_config, aa_kbc_params);
         config_override!(agent_config_builder, agent_config, confidential_image_digests);
         config_override!(agent_config_builder, agent_config, aa_attester);
+        config_override!(agent_config_builder, agent_config, kbs_ld);
         config_override!(agent_config_builder, agent_config, rest_api);
         config_override!(agent_config_builder, agent_config, https_proxy);
         config_override!(agent_config_builder, agent_config, no_proxy);
@@ -361,6 +366,7 @@ impl AgentConfig {
             parse_cmdline_param!(param, AA_KBC_PARAMS, config.aa_kbc_params, get_string_value);
             parse_cmdline_param!(param, CONFIDENTIAL_IMAGE_DIGESTS, config.confidential_image_digests, get_string_value);
             parse_cmdline_param!(param, AA_ATTESTER, config.aa_attester, get_string_value);
+            parse_cmdline_param!(param, KBS_LD, config.kbs_ld, get_string_value);
             parse_cmdline_param!(param, REST_API_OPTION, config.rest_api, get_string_value);
             parse_cmdline_param!(param, HTTPS_PROXY, config.https_proxy, get_url_value);
             parse_cmdline_param!(param, NO_PROXY, config.no_proxy, get_string_value);
@@ -609,6 +615,7 @@ mod tests {
             aa_kbc_params: &'a str,
             confidential_image_digests: &'a str,
             aa_attester: &'a str,
+            kbs_ld: &'a str,
             rest_api: &'a str,
             https_proxy: &'a str,
             no_proxy: &'a str,
@@ -636,6 +643,7 @@ mod tests {
                     aa_kbc_params: "",
                     confidential_image_digests: "",
                     aa_attester: "",
+                    kbs_ld: "",
                     rest_api: "",
                     https_proxy: "",
                     no_proxy: "",

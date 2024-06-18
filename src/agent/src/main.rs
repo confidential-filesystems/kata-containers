@@ -426,21 +426,32 @@ fn init_attestation_agent(logger: &Logger, _config: &AgentConfig) -> Result<()> 
     #[cfg(feature = "confidential-data-hub")]
     if _config.aa_attester == image_rs::extra::token::ATTESTER_CONTROLLER
         || _config.aa_attester == image_rs::extra::token::ATTESTER_METADATA {
-        info!(logger, "confilesystem11 - init_attestation_agent(): -> RUN confidential-data-hub");
+        info!(logger, "confilesystem20 - init_attestation_agent(): -> RUN confidential-data-hub");
+        let (_kbc_name, kbs_uri) = match _config.aa_kbc_params.split_once("::") {
+            Some((_kbc_name, kbs_uri)) => (_kbc_name, kbs_uri),
+            None => { return Err(anyhow!("aa_kbc_params: KBC/KBS pair not found: {:?}", _config.aa_kbc_params)); },
+        };
+        info!(logger, "confilesystem20 - init_attestation_agent(): kbs_uri = {:?}", kbs_uri);
+        let cdh_args = &vec!["--aa_attester", &_config.aa_attester,
+                             "--kbs_url", kbs_uri,
+                             "--kbs_ld", &_config.kbs_ld,
+                             "--kbs_is_emulated", "true"];
         if let Err(e) = launch_process(
             logger,
             CDH_PATH,
-            &vec!["--aa_attester", &_config.aa_attester],
+            cdh_args,
             CDH_SOCKET,
             DEFAULT_LAUNCH_PROCESS_TIMEOUT,
         ) {
             error!(logger, "launch_process {} failed: {:?}", CDH_PATH, e);
         } else if !_config.rest_api.is_empty() {
             info!(logger, "confilesystem11 - init_attestation_agent(): -> RUN api-server-rest");
+            let api_server_args = &vec!["--features", &_config.rest_api,
+                                        "--aa_attester", &_config.aa_attester];
             if let Err(e) = launch_process(
                 logger,
                 API_SERVER_PATH,
-                &vec!["--features", &_config.rest_api, "--aa_attester", &_config.aa_attester],
+                api_server_args,
                 "",
                 0,
             ) {
