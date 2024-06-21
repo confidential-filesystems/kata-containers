@@ -116,9 +116,9 @@ const ERR_INVALID_BLOCK_SIZE: &str = "Invalid block size";
 const ERR_NO_LINUX_FIELD: &str = "Spec does not contain linux field";
 const ERR_NO_SANDBOX_PIDNS: &str = "Sandbox does not have sandbox_pidns";
 
-const CONTROLLER_CRP_TOKEN_KEY: &str = "controllerCrpToken";
-const CONTROLLER_ATTESTATION_REPORT_KEY: &str = "controllerAttestationReport";
-const CONTROLLER_CERT_CHAIN_KEY: &str = "controllerCertChain";
+const CONTROLLER_CRP_TOKEN_KEY: &str = "confidentialfilesystems_controllerCrpToken";
+const CONTROLLER_ATTESTATION_REPORT_KEY: &str = "confidentialfilesystems_controllerAttestationReport";
+const CONTROLLER_CERT_CHAIN_KEY: &str = "confidentialfilesystems_controllerCertChain";
 //const WORKLOAD_ATTESTATION_REPORT: &str = "workloadAttestationReport";
 //const WORKLOAD_CERT_CHAIN: &str = "workloadCertChain";
 
@@ -195,13 +195,16 @@ fn get_ee_data(oci: &mut Spec, aa_attester: &str) -> Result<image_rs::extra::tok
     }
 
     match aa_attester {
+        image_rs::extra::token::ATTESTER_SECURITY => {
+            return Ok(ee_data);
+        },
         image_rs::extra::token::ATTESTER_CONTROLLER => {
             return Ok(ee_data);
         },
         image_rs::extra::token::ATTESTER_METADATA => {},
         image_rs::extra::token::ATTESTER_WORKLOAD => {},
         _ => {
-            return Err(anyhow!("confilesystem7 - aa_attester must be set to controller/metadata/workload"));
+            return Err(anyhow!("confilesystem7 - aa_attester must be set to security/controller/metadata/workload"));
         },
     }
 
@@ -307,6 +310,11 @@ fn get_ee_data(oci: &mut Spec, aa_attester: &str) -> Result<image_rs::extra::tok
 
         file = fs::File::create(controller_cert_chain_file.clone())?;
         file.write_all(ee_data.controller_cert_chain.as_bytes())?;
+
+        // set to env to get by cdh
+        std::env::set_var(CONTROLLER_CRP_TOKEN_KEY, ee_data.controller_crp_token);
+        std::env::set_var(CONTROLLER_ATTESTATION_REPORT_KEY, ee_data.controller_attestation_report);
+        std::env::set_var(CONTROLLER_CERT_CHAIN_KEY, ee_data.controller_cert_chain);
 
         ee_data.is_init_container = true;
     }

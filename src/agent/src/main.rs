@@ -424,8 +424,10 @@ fn init_attestation_agent(logger: &Logger, _config: &AgentConfig) -> Result<()> 
     .map_err(|e| anyhow!("launch_process {} failed: {:?}", AA_PATH, e))?;
 
     #[cfg(feature = "confidential-data-hub")]
-    if _config.aa_attester == image_rs::extra::token::ATTESTER_CONTROLLER
-        || _config.aa_attester == image_rs::extra::token::ATTESTER_METADATA {
+    if _config.aa_attester == image_rs::extra::token::ATTESTER_SECURITY
+        || _config.aa_attester == image_rs::extra::token::ATTESTER_CONTROLLER
+        || _config.aa_attester == image_rs::extra::token::ATTESTER_METADATA
+        || _config.aa_attester == image_rs::extra::token::ATTESTER_WORKLOAD {
         info!(logger, "confilesystem20 - init_attestation_agent(): -> RUN confidential-data-hub");
         let (_kbc_name, kbs_uri) = match _config.aa_kbc_params.split_once("::") {
             Some((_kbc_name, kbs_uri)) => (_kbc_name, kbs_uri),
