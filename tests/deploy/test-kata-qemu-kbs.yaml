@@ -2,12 +2,13 @@ apiVersion: v1
 kind: Pod
 metadata:
   labels:
-    app: test-kata-qemu-kbs-1
-  name: test-kata-qemu-kbs-1
+    app: test-kata-qemu-security-1
+  name: test-kata-qemu-security-1
   annotations:
-    io.containerd.cri.runtime-handler: kata-qemu-controller
+    io.containerd.cri.runtime-handler: kata-qemu-security
 spec:
-  runtimeClassName: kata-qemu-controller
+  restartPolicy: Always
+  runtimeClassName: kata-qemu-security
   volumes:
   - name: test-shared-data
     emptyDir:
@@ -19,7 +20,7 @@ spec:
   - name: postgres-storage
     emptyDir: {}
   containers:
-  - name: cfs-kbs-1
+  - name: cfs-security-1
     image: hub.confidentialfilesystems.com:4443/cc/coco-trustee:v0.8.0-filesystem-1
     imagePullPolicy: Always
     volumeMounts:
@@ -49,7 +50,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: test-kata-qemu-kbs-1-svc
+  name: test-kata-qemu-security-1-svc
 spec:
   type: NodePort
   ports:
@@ -58,4 +59,4 @@ spec:
       nodePort: 31111
       targetPort: 11111
   selector:
-    app: test-kata-qemu-kbs-1
+    app: test-kata-qemu-security-1
