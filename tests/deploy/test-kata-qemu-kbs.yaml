@@ -16,6 +16,8 @@ spec:
     hostPath:
       path: /run/kata-containers/my-share
       type: DirectoryOrCreate
+  - name: postgres-storage
+    emptyDir: {}
   containers:
   - name: cfs-kbs-1
     image: hub.confidentialfilesystems.com:4443/cc/coco-trustee:v0.8.0-filesystem-1
@@ -28,6 +30,21 @@ spec:
         mountPropagation: Bidirectional
     securityContext:
       privileged: true
+  - name: ownership-db-1
+    image: hub.confidentialfilesystems.com:4443/cc/postgres:12.19-alpine
+    imagePullPolicy: Always
+    env:
+      - name: POSTGRES_DB
+        value: postgres
+      - name: POSTGRES_USER
+        value: postgres
+      - name: POSTGRES_PASSWORD
+        value: "123456"
+    ports:
+      - containerPort: 5432
+    volumeMounts:
+      - name: postgres-storage
+        mountPath: /var/lib/postgresql/data
 ---
 apiVersion: v1
 kind: Service
