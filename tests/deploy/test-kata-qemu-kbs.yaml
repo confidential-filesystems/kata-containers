@@ -13,9 +13,9 @@ spec:
   - name: test-shared-data
     emptyDir:
       medium: Memory
-  - name: host-share-v
+  - name: repo-file-v
     hostPath:
-      path: /run/kata-containers/my-share
+      path: /run/kata-containers/repo-file
       type: DirectoryOrCreate
   - name: postgres-storage
     emptyDir: {}
@@ -24,8 +24,8 @@ spec:
     image: hub.confidentialfilesystems.com:4443/cc/coco-trustee:v0.8.0-filesystem-1
     imagePullPolicy: Always
     volumeMounts:
-      - name: host-share-v
-        mountPath: /data/my-share
+      - name: repo-file-v
+        mountPath: /opt/confidential-containers/kbs
       - name: test-shared-data
         mountPath: /data1
         mountPropagation: Bidirectional
