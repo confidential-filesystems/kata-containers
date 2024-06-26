@@ -32,7 +32,7 @@ spec:
     image: hub.confidentialfilesystems.com:4443/cc/cfs-fuse:v0.0.1-d1
     env:
       - name: DEVICE_PASSWORD
-        value: xprvA6SLQMF34gS6tpmrzBYXcD27JtcyQi7MRidJwMK8CMbSSEY7TEYHEtUbxshncghGpofmm2i7RTw3Zx14TUGTm5E4NwyNBpKzSkHCRqpB992
+        value: xprvA6LgfCaqL12ru5x8YvQkHofE1c9Aj5gMAhZWyYNfQuDMyNpjkwcZEqtNwj1pGfYWXJre2GEs4TEPurL8xicHfBnzvWFSgKXUfsHnGRcrNx8
     lifecycle:
       preStop:
         exec:
