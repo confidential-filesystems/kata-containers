@@ -10,29 +10,58 @@ spec:
   restartPolicy: Always
   runtimeClassName: kata-qemu-security
   volumes:
-  - name: test-shared-data
+  - name: jfs-share
     emptyDir:
       medium: Memory
-  - name: repo-file-v
-    hostPath:
-      path: /run/kata-containers/repo-file
-      type: DirectoryOrCreate
-  - name: postgres-storage
-    emptyDir: {}
+      sizeLimit: 10Mi
+  - name: block-volume-ceph
+    persistentVolumeClaim:
+      claimName: cfs-security-kbs-pvc
   containers:
+  - name: device-sidecar-1
+    #image: hub.confidentialfilesystems.com:4443/cc/juicedata-juicefs-sidecar:v1.1.2-filesystem-1
+    #image: hub.confidentialfilesystems.com:4443/cc/coco-trustee:v0.8.0-filesystem-1
+    image: hub.idoe.space/blockchain/cc/cfs-benchmark:v0.0.4
+    lifecycle:
+      preStop:
+        exec:
+          command:
+          - sh
+          - -c
+          - close_block_device.sh cfs-ceph /jfs/share/cfs
+    command:
+    - sh
+    - -c
+    - |-
+      open_block_device.sh /dev/block-ceph cfs-ceph /jfs/share/cfs /home/tmp/fsrk
+      while true; do sleep 60; done
+    resources:
+      limits:
+        cpu: '2'
+        memory: 8Gi
+      requests:
+        cpu: '2'
+        memory: 8Gi
+    securityContext:
+      privileged: true
+    volumeDevices:
+      - name: block-volume-ceph
+        devicePath: /dev/block-ceph
+    volumeMounts:
+      - name: jfs-share
+        mountPath: /jfs/share
+        mountPropagation: Bidirectional
   - name: cfs-security-1
     image: hub.confidentialfilesystems.com:4443/cc/coco-trustee:v0.8.0-filesystem-1
     imagePullPolicy: Always
     volumeMounts:
-      - name: repo-file-v
-        mountPath: /opt/confidential-containers/kbs
-      - name: test-shared-data
-        mountPath: /data1
-        mountPropagation: Bidirectional
+      - name: jfs-share
+        mountPath: /opt/confidential-containers/kbs # use in /opt/confidential-containers/kbs/repository
     securityContext:
       privileged: true
   - name: ownership-db-1
-    image: hub.confidentialfilesystems.com:4443/cc/postgres:12.19-alpine
+    #image: hub.confidentialfilesystems.com:4443/cc/postgres:12.19-alpine
+    image: hub.confidentialfilesystems.com:4443/cc/postgres:12-alpine
     imagePullPolicy: Always
     env:
       - name: POSTGRES_DB
@@ -41,11 +70,13 @@ spec:
         value: postgres
       - name: POSTGRES_PASSWORD
         value: "123456"
+      - name: PGDATA
+        value: /var/lib/postgresql/data
     ports:
       - containerPort: 5432
     volumeMounts:
-      - name: postgres-storage
-        mountPath: /var/lib/postgresql/data
+      - name: jfs-share
+        mountPath: /var/lib/postgresql
 ---
 apiVersion: v1
 kind: Service
