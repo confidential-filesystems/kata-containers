@@ -311,11 +311,6 @@ fn get_ee_data(oci: &mut Spec, aa_attester: &str) -> Result<image_rs::extra::tok
         file = fs::File::create(controller_cert_chain_file.clone())?;
         file.write_all(ee_data.controller_cert_chain.as_bytes())?;
 
-        // set to env to get by cdh
-        std::env::set_var(CONTROLLER_CRP_TOKEN_KEY, ee_data.controller_crp_token.clone());
-        std::env::set_var(CONTROLLER_ATTESTATION_REPORT_KEY, ee_data.controller_attestation_report.clone());
-        std::env::set_var(CONTROLLER_CERT_CHAIN_KEY, ee_data.controller_cert_chain.clone());
-
         ee_data.is_init_container = true;
     }
 
