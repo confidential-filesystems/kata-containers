@@ -427,13 +427,6 @@ impl AgentService {
             }
         }
 
-        // Both rootfs and volumes (invoked with --volume for instance) will
-        // be processed the same way. The idea is to always mount any provided
-        // storage to the specified MountPoint, so that it will match what's
-        // inside oci.Mounts.
-        // After all those storages have been processed, no matter the order
-        // here, the agent will rely on rustjail (using the oci.Mounts
-        // list) to bind mount all of them inside the container.
         // add by confilesystem
         let ee_data = get_ee_data(&mut oci, &crate::AGENT_CONFIG.aa_attester)
             .expect("confilesystem7 - fail to get ExternalExtraData");
@@ -448,6 +441,13 @@ impl AgentService {
         info!(sl(), "confilesystem5 - create_device(): ie_data.authorized_res = {:?}", ie_data.authorized_res);
         info!(sl(), "confilesystem5 - create_device(): ie_data.runtime_res = {:?}", ie_data.runtime_res);
 
+        // Both rootfs and volumes (invoked with --volume for instance) will
+        // be processed the same way. The idea is to always mount any provided
+        // storage to the specified MountPoint, so that it will match what's
+        // inside oci.Mounts.
+        // After all those storages have been processed, no matter the order
+        // here, the agent will rely on rustjail (using the oci.Mounts
+        // list) to bind mount all of them inside the container.
         let m = add_storages(sl(), req.storages, &self.sandbox, Some(req.container_id), &mut ie_data).await?;
 
         let mut s = self.sandbox.lock().await;

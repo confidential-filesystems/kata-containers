@@ -77,15 +77,9 @@ ln -sf /sbin/init "${ROOTFS}/init"
 
 cat > ${ROOTFS}/usr/local/bin/cmount.sh <<EOF
 #!/bin/sh
-echo "cmount !!!!!!!!!!!!!!!!!" >> /tmp/log
-cat /proc/self/mountinfo >> /tmp/log
-ls /run/kata-containers/sandbox/ephemeral >> /tmp/log
-echo "cmount start" >> /tmp/log
-mkdir -p /run/kata-containers/sandbox/ephemeral
-ls /run/kata-containers/sandbox/ephemeral >> /tmp/log
 mount --bind --make-shared /run/kata-containers/sandbox/ephemeral /run/kata-containers/sandbox/ephemeral >> /tmp/log
-echo "cmount end !!!!!!!!!!!!!!!!!" >> /tmp/log
-cat /proc/self/mountinfo >> /tmp/log
+
+exit 0
 EOF
 
 chmod +x ${ROOTFS}/usr/local/bin/cmount.sh
