@@ -27,9 +27,6 @@ const CONTAINER_PIPE_SIZE_OPTION: &str = "agent.container_pipe_size";
 const UNIFIED_CGROUP_HIERARCHY_OPTION: &str = "agent.unified_cgroup_hierarchy";
 const CONFIG_FILE: &str = "agent.config_file";
 const AA_KBC_PARAMS: &str = "agent.aa_kbc_params";
-const CONFIDENTIAL_IMAGE_DIGESTS: &str = "agent.confidential_image_digests";
-const AA_ATTESTER: &str = "agent.aa_attester";
-const KBS_LD: &str = "agent.kbs_ld";
 const REST_API_OPTION: &str = "agent.rest_api";
 const HTTPS_PROXY: &str = "agent.https_proxy";
 const NO_PROXY: &str = "agent.no_proxy";
@@ -38,6 +35,10 @@ const ENABLE_SIGNATURE_VERIFICATION: &str = "agent.enable_signature_verification
 const IMAGE_POLICY_FILE: &str = "agent.image_policy";
 const IMAGE_REGISTRY_AUTH_FILE: &str = "agent.image_registry_auth";
 const SIMPLE_SIGNING_SIGSTORE_CONFIG: &str = "agent.simple_signing_sigstore_config";
+const CONFIDENTIAL_IMAGE_DIGESTS: &str = "agent.confidential_image_digests";
+const AA_ATTESTER: &str = "agent.aa_attester";
+const KBS_LD: &str = "agent.kbs_ld";
+const COMMANDS: &str = "agent.commands";
 
 const DEFAULT_LOG_LEVEL: slog::Level = slog::Level::Info;
 const DEFAULT_HOTPLUG_TIMEOUT: time::Duration = time::Duration::from_secs(3);
@@ -92,9 +93,6 @@ pub struct AgentConfig {
     pub supports_seccomp: bool,
     pub container_policy_path: String,
     pub aa_kbc_params: String,
-    pub confidential_image_digests: String,
-    pub aa_attester: String,
-    pub kbs_ld: String,
     pub rest_api: String,
     pub https_proxy: String,
     pub no_proxy: String,
@@ -103,6 +101,10 @@ pub struct AgentConfig {
     pub image_policy_file: String,
     pub image_registry_auth_file: String,
     pub simple_signing_sigstore_config: String,
+    pub confidential_image_digests: String,
+    pub aa_attester: String,
+    pub kbs_ld: String,
+    pub commands: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -120,9 +122,6 @@ pub struct AgentConfigBuilder {
     pub endpoints: Option<EndpointsConfig>,
     pub container_policy_path: Option<String>,
     pub aa_kbc_params: Option<String>,
-    pub confidential_image_digests: Option<String>,
-    pub aa_attester: Option<String>,
-    pub kbs_ld: Option<String>,
     pub rest_api: Option<String>,
     pub https_proxy: Option<String>,
     pub no_proxy: Option<String>,
@@ -131,6 +130,10 @@ pub struct AgentConfigBuilder {
     pub image_policy_file: Option<String>,
     pub image_registry_auth_file: Option<String>,
     pub simple_signing_sigstore_config: Option<String>,
+    pub confidential_image_digests: Option<String>,
+    pub aa_attester: Option<String>,
+    pub kbs_ld: Option<String>,
+    pub commands: Option<String>,
 }
 
 macro_rules! config_override {
@@ -194,9 +197,6 @@ impl Default for AgentConfig {
             supports_seccomp: rpc::have_seccomp(),
             container_policy_path: String::from(""),
             aa_kbc_params: String::from(""),
-            confidential_image_digests: String::from(""),
-            aa_attester: String::from(""),
-            kbs_ld: String::from(""),
             rest_api: String::from(""),
             https_proxy: String::from(""),
             no_proxy: String::from(""),
@@ -205,6 +205,10 @@ impl Default for AgentConfig {
             image_policy_file: String::from(""),
             image_registry_auth_file: String::from(""),
             simple_signing_sigstore_config: String::from(""),
+            confidential_image_digests: String::from(""),
+            aa_attester: String::from(""),
+            kbs_ld: String::from(""),
+            commands: String::from(""),
         }
     }
 }
@@ -235,9 +239,6 @@ impl FromStr for AgentConfig {
         config_override!(agent_config_builder, agent_config, tracing);
         config_override!(agent_config_builder, agent_config, container_policy_path);
         config_override!(agent_config_builder, agent_config, aa_kbc_params);
-        config_override!(agent_config_builder, agent_config, confidential_image_digests);
-        config_override!(agent_config_builder, agent_config, aa_attester);
-        config_override!(agent_config_builder, agent_config, kbs_ld);
         config_override!(agent_config_builder, agent_config, rest_api);
         config_override!(agent_config_builder, agent_config, https_proxy);
         config_override!(agent_config_builder, agent_config, no_proxy);
@@ -254,6 +255,10 @@ impl FromStr for AgentConfig {
             agent_config,
             simple_signing_sigstore_config
         );
+        config_override!(agent_config_builder, agent_config, confidential_image_digests);
+        config_override!(agent_config_builder, agent_config, aa_attester);
+        config_override!(agent_config_builder, agent_config, kbs_ld);
+        config_override!(agent_config_builder, agent_config, commands);
 
         // Populate the allowed endpoints hash set, if we got any from the config file.
         if let Some(endpoints) = agent_config_builder.endpoints {
@@ -364,9 +369,6 @@ impl AgentConfig {
             );
 
             parse_cmdline_param!(param, AA_KBC_PARAMS, config.aa_kbc_params, get_string_value);
-            parse_cmdline_param!(param, CONFIDENTIAL_IMAGE_DIGESTS, config.confidential_image_digests, get_string_value);
-            parse_cmdline_param!(param, AA_ATTESTER, config.aa_attester, get_string_value);
-            parse_cmdline_param!(param, KBS_LD, config.kbs_ld, get_string_value);
             parse_cmdline_param!(param, REST_API_OPTION, config.rest_api, get_string_value);
             parse_cmdline_param!(param, HTTPS_PROXY, config.https_proxy, get_url_value);
             parse_cmdline_param!(param, NO_PROXY, config.no_proxy, get_string_value);
@@ -408,8 +410,11 @@ impl AgentConfig {
                 config.simple_signing_sigstore_config,
                 get_string_value
             );
+            parse_cmdline_param!(param, CONFIDENTIAL_IMAGE_DIGESTS, config.confidential_image_digests, get_string_value);
+            parse_cmdline_param!(param, AA_ATTESTER, config.aa_attester, get_string_value);
+            parse_cmdline_param!(param, KBS_LD, config.kbs_ld, get_string_value);
+            parse_cmdline_param!(param, COMMANDS, config.commands, get_string_value);
         }
-
         if let Ok(addr) = env::var(SERVER_ADDR_ENV_VAR) {
             config.server_addr = addr;
         }
@@ -578,6 +583,7 @@ mod tests {
     use anyhow::anyhow;
     use std::fs::File;
     use std::io::Write;
+    use std::process::Command;
     use std::time;
     use tempfile::tempdir;
 
@@ -613,9 +619,6 @@ mod tests {
             tracing: bool,
             container_policy_path: &'a str,
             aa_kbc_params: &'a str,
-            confidential_image_digests: &'a str,
-            aa_attester: &'a str,
-            kbs_ld: &'a str,
             rest_api: &'a str,
             https_proxy: &'a str,
             no_proxy: &'a str,
@@ -624,6 +627,10 @@ mod tests {
             image_policy_file: &'a str,
             image_registry_auth_file: &'a str,
             simple_signing_sigstore_config: &'a str,
+            confidential_image_digests: &'a str,
+            aa_attester: &'a str,
+            kbs_ld: &'a str,
+            command: &'a str,
         }
 
         impl Default for TestData<'_> {
@@ -641,9 +648,6 @@ mod tests {
                     tracing: false,
                     container_policy_path: "",
                     aa_kbc_params: "",
-                    confidential_image_digests: "",
-                    aa_attester: "",
-                    kbs_ld: "",
                     rest_api: "",
                     https_proxy: "",
                     no_proxy: "",
@@ -652,6 +656,10 @@ mod tests {
                     image_policy_file: "",
                     image_registry_auth_file: "",
                     simple_signing_sigstore_config: "",
+                    confidential_image_digests: "",
+                    aa_attester: "",
+                    kbs_ld: "",
+                    command: "",
                 }
             }
         }

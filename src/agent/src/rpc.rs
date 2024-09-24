@@ -89,6 +89,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::FileExt;
 use std::path::PathBuf;
+use image_rs::extra::controller::IC;
 
 #[cfg(feature = "sealed-secret")]
 use crate::cdh::CDHClient;
@@ -140,6 +141,33 @@ fn ttrpc_error(code: ttrpc::Code, err: impl std::fmt::Debug) -> ttrpc::Error {
 
 fn is_allowed(req: &impl MessageDyn) -> ttrpc::Result<()> {
     if !AGENT_CONFIG.is_allowed_endpoint(req.descriptor_dyn().name()) {
+        Err(ttrpc_error(
+            ttrpc::Code::UNIMPLEMENTED,
+            format!("{} is blocked", req.descriptor_dyn().name()),
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+#[allow(dead_code)]
+fn is_allowed_exec(req: &protocols::agent::ExecProcessRequest) -> ttrpc::Result<()> {
+    if !AGENT_CONFIG.is_allowed_endpoint(req.descriptor_dyn().name()) {
+        info!(sl(), "confilesystem - is_allowed_exec commands endpoint is not enabled");
+        {
+            let process = req.process.clone().into_option();
+            if process.is_none(){
+                return Err(ttrpc_error(
+                    ttrpc::Code::UNIMPLEMENTED,
+                    "Unable to parse process from ExecProcessRequest".to_string()),
+                );
+            }
+
+            let mut ic = IC.lock().unwrap();
+            if ic.is_allowed_command(req.container_id.clone(), process.unwrap().Args).is_ok(){
+                return Ok(());
+            };
+        }
         Err(ttrpc_error(
             ttrpc::Code::UNIMPLEMENTED,
             format!("{} is blocked", req.descriptor_dyn().name()),
@@ -368,6 +396,10 @@ impl AgentService {
             sl(),
             "receive createcontainer, storages: {:?}", &req.storages
         );
+        info!(
+            sl(),
+            "receive createcontainer, devices: {:?}", &req.devices
+        );
 
         // In case of pulling image inside guest, we need to merge the image bundle OCI spec
         // into the container creation request OCI spec.
@@ -430,13 +462,13 @@ impl AgentService {
         // add by confilesystem
         let ee_data = get_ee_data(&mut oci, &crate::AGENT_CONFIG.aa_attester)
             .expect("confilesystem7 - fail to get ExternalExtraData");
-        // add by confilesystem
-        info!(sl(), "confilesystem6 - create_device(): AGENT_CONFIG.confidential_image_digests = {:?}, AGENT_CONFIG.aa_attester = {:?}",
-            &crate::AGENT_CONFIG.confidential_image_digests, &crate::AGENT_CONFIG.aa_attester);
-        let mut ie_data = ee_data.proc(&crate::AGENT_CONFIG.aa_kbc_params
-            ,&crate::AGENT_CONFIG.confidential_image_digests)
+        let mut ie_data = ee_data.proc(&crate::AGENT_CONFIG.aa_kbc_params)
             .await?;
             //.expect("confilesystem5 - fail to ee_data.proc( - External - )");
+        ie_data.cid = cid.clone();
+        let process = oci.process.as_mut().ok_or_else(|| anyhow!("Spec didn't contain process field"))?;
+        ie_data.container_command = process.args.clone();
+
         info!(sl(), "confilesystem5 - create_device(): ie_data.controller_crp_token    = {:?}", ie_data.controller_crp_token);
         info!(sl(), "confilesystem5 - create_device(): ie_data.authorized_res = {:?}", ie_data.authorized_res);
         info!(sl(), "confilesystem5 - create_device(): ie_data.runtime_res = {:?}", ie_data.runtime_res);
@@ -604,12 +636,19 @@ impl AgentService {
         let exec_id = req.exec_id;
 
         info!(sl(), "do_exec_process cid: {} eid: {}", cid, exec_id);
+        //info!(sl(), "confilesystem5 - do_exec_process(): workload_container_ids = {:?}", self.workload_container_ids);
 
         let mut sandbox = self.sandbox.lock().await;
         let mut process = req
             .process
             .into_option()
             .ok_or_else(|| anyhow!("Unable to parse process from ExecProcessRequest"))?;
+        // {
+        //     let mut ic = IC.lock().unwrap();
+        //     if ic.is_allowed_command(cid.clone(), process.Args.clone()).is_err() {
+        //         return Err(anyhow!("command not allowed"));
+        //     };
+        // }
 
         // Apply any necessary corrections for PCI addresses
         update_env_pci(&mut process.Env, &sandbox.pcimap)?;
@@ -924,7 +963,7 @@ impl agent_ttrpc::AgentService for AgentService {
         req: protocols::agent::ExecProcessRequest,
     ) -> ttrpc::Result<Empty> {
         trace_rpc_call!(ctx, "exec_process", req);
-        is_allowed(&req)?;
+        is_allowed_exec(&req)?;
         match self.do_exec_process(req).await {
             Err(e) => Err(ttrpc_error(ttrpc::Code::INTERNAL, e)),
             Ok(_) => Ok(Empty::new()),
@@ -1949,6 +1988,19 @@ pub async fn start(
     server_address: &str,
     init_mode: bool,
 ) -> Result<TtrpcServer> {
+    info!(sl(), "confilesystem - start agent service: AGENT_CONFIG.aa_attester = {:?}", &crate::AGENT_CONFIG.aa_attester);
+    {
+        let (_kbc_name, kbs_url) = match crate::AGENT_CONFIG.aa_kbc_params.split_once("::") {
+            Some((_kbc_name, kbs_url)) => (_kbc_name, kbs_url),
+            None => { return Err(anyhow!("aa_kbc_params: KBC/KBS pair not found: {:?}", crate::AGENT_CONFIG.aa_kbc_params)); },
+        };
+        let mut ic = IC.lock().unwrap();
+        ic.set_kbs_url(kbs_url.to_string());
+        ic.set_digests(crate::AGENT_CONFIG.confidential_image_digests.clone());
+        ic.set_commands(crate::AGENT_CONFIG.commands.clone());
+        info!(sl(), "confilesystem - start agent service: commands = {:?}", ic.get_commands());
+    }
+
     let agent_service = Box::new(AgentService {
         sandbox: s.clone(),
         init_mode,

@@ -47,6 +47,7 @@ impl StorageHandler for ImagePullHandler {
         ctx: &mut StorageContext,
         ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - ImagePullHandler#create_device: storage = {:?}", &storage);
         info!(sl(), "confilesystem13 - create_device(): ie_data.container_name = {:?}, ie_data.controller_crp_token.len() = {:?}",
             ie_data.container_name, ie_data.controller_crp_token.len());
 

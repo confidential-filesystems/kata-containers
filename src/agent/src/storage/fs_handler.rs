@@ -14,7 +14,7 @@ use kata_types::volume::KATA_VOLUME_OVERLAYFS_CREATE_DIR;
 use protocols::agent::Storage;
 use tracing::instrument;
 
-use crate::storage::{common_storage_handler, new_device, StorageContext, StorageHandler};
+use crate::storage::{common_storage_handler, new_device, sl, StorageContext, StorageHandler};
 
 #[derive(Debug)]
 pub struct OverlayfsHandler {}
@@ -28,6 +28,7 @@ impl StorageHandler for OverlayfsHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - OverlayfsHandler#create_device: storage = {:?}", &storage);
         if storage
             .options
             .iter()

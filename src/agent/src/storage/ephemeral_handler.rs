@@ -23,9 +23,7 @@ use tracing::instrument;
 use crate::device::{DRIVER_EPHEMERAL_TYPE, FS_TYPE_HUGETLB};
 use crate::mount::baremount;
 use crate::sandbox::Sandbox;
-use crate::storage::{
-    common_storage_handler, new_device, parse_options, StorageContext, StorageHandler, MODE_SETGID,
-};
+use crate::storage::{common_storage_handler, new_device, parse_options, StorageContext, StorageHandler, MODE_SETGID, sl};
 
 const FS_GID_EQ: &str = "fsgid=";
 const SYS_FS_HUGEPAGES_PREFIX: &str = "/sys/kernel/mm/hugepages";
@@ -42,6 +40,7 @@ impl StorageHandler for EphemeralHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - EphemeralHandler#create_device: storage = {:?}", &storage);
         // hugetlbfs
         if storage.fstype == FS_TYPE_HUGETLB {
             info!(ctx.logger, "handle hugetlbfs storage");

@@ -11,7 +11,7 @@ use std::iter;
 use std::sync::Arc;
 use tracing::instrument;
 
-use crate::storage::{new_device, StorageContext, StorageHandler};
+use crate::storage::{new_device, sl, StorageContext, StorageHandler};
 
 #[derive(Debug)]
 pub struct BindWatcherHandler {}
@@ -25,6 +25,7 @@ impl StorageHandler for BindWatcherHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - BindWatcherHandler#create_device: storage = {:?}x", &storage);
         if let Some(cid) = ctx.cid {
             ctx.sandbox
                 .lock()

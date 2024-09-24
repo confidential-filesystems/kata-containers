@@ -20,7 +20,7 @@ use crate::device::{
     wait_for_pmem_device,
 };
 use crate::pci;
-use crate::storage::{common_storage_handler, new_device, StorageContext, StorageHandler};
+use crate::storage::{common_storage_handler, new_device, sl, StorageContext, StorageHandler};
 #[cfg(target_arch = "s390x")]
 use crate::{ccw, device::get_virtio_blk_ccw_device_name};
 
@@ -50,6 +50,7 @@ impl StorageHandler for VirtioBlkMmioHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - VirtioBlkMmioHandler#create_device: storage = {:?}", &storage);
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
         new_device(path)
@@ -92,6 +93,7 @@ impl StorageHandler for VirtioBlkPciHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - VirtioBlkPciHandler#create_device: storage = {:?}", &storage);
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
         new_device(path)
@@ -167,6 +169,7 @@ impl StorageHandler for ScsiHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - ScsiHandler#create_device: storage = {:?}", &storage);
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
         new_device(path)
@@ -196,6 +199,7 @@ impl StorageHandler for PmemHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - PmemHandler#create_device: storage = {:?}", &storage);
         Self::update_device_path(&mut storage, ctx).await?;
         let path = common_storage_handler(ctx.logger, &storage)?;
         new_device(path)

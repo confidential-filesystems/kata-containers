@@ -14,7 +14,7 @@ use nix::unistd::Gid;
 use protocols::agent::Storage;
 use tracing::instrument;
 
-use crate::storage::{new_device, parse_options, StorageContext, StorageHandler, MODE_SETGID};
+use crate::storage::{new_device, parse_options, StorageContext, StorageHandler, MODE_SETGID, sl};
 
 #[derive(Debug)]
 pub struct LocalHandler {}
@@ -28,6 +28,7 @@ impl StorageHandler for LocalHandler {
         _ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - LocalHandler#create_device: storage = {:?}", &storage);
         fs::create_dir_all(&storage.mount_point).context(format!(
             "failed to create dir all {:?}",
             &storage.mount_point

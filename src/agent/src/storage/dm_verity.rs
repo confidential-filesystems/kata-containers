@@ -23,7 +23,7 @@ use tracing::instrument;
 use crate::storage::block_handler::{
     PmemHandler, ScsiHandler, VirtioBlkCcwHandler, VirtioBlkMmioHandler, VirtioBlkPciHandler,
 };
-use crate::storage::{common_storage_handler, StorageContext, StorageHandler};
+use crate::storage::{common_storage_handler, sl, StorageContext, StorageHandler};
 
 use super::StorageDeviceGeneric;
 
@@ -85,6 +85,7 @@ impl StorageHandler for DmVerityHandler {
         ctx: &mut StorageContext,
         _ie_data: &mut image_rs::extra::token::InternalExtraData,
     ) -> Result<Arc<dyn StorageDevice>> {
+        info!(sl(), "confilesystem13 - DmVerityHandler#create_device: storage = {:?}", &storage);
         Self::update_source_device(&mut storage, ctx).await?;
         create_mount_destination(&storage.source, &storage.mount_point, "", &storage.fstype)
             .context("Could not create mountpoint")?;

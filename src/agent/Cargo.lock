@@ -2003,13 +2003,15 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
- "logging",
+ "logging 0.1.0 (git+https://github.com/confidential-filesystems/kata-containers?branch=cc-0.8.0-filesystem)",
  "loopdev",
  "nix 0.26.2",
  "oci-distribution",
  "oci-spec",
  "ocicrypt-rs",
+ "parking_lot 0.12.1",
  "protobuf 3.2.0",
+ "regex",
  "reqwest",
  "sequoia-openpgp",
  "serde",
@@ -2278,7 +2280,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
- "logging",
+ "logging 0.1.0",
  "netlink-packet-utils",
  "netlink-sys",
  "nix 0.24.3",
@@ -2513,6 +2515,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "logging"
+version = "0.1.0"
+source = "git+https://github.com/confidential-filesystems/kata-containers?branch=cc-0.8.0-filesystem#08eb62310664e5621c15419050b6c4c95cc47afc"
+dependencies = [
+ "serde_json",
+ "slog",
+ "slog-async",
+ "slog-json",
+ "slog-scope",
+ "slog-term",
+]
+
+[[package]]
 name = "loopdev"
 version = "0.5.0"
 source = "git+https://github.com/mdaffin/loopdev?rev=c9f91e8f0326ce8a3364ac911e81eb32328a5f27#c9f91e8f0326ce8a3364ac911e81eb32328a5f27"
@@ -2537,7 +2552,7 @@ version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f099785f7595cc4b4553a174ce30dd7589ef93391ff414dbb67f62392b9e0ce1"
 dependencies = [
- "regex-automata",
+ "regex-automata 0.1.10",
 ]
 
 [[package]]
@@ -2551,9 +2566,9 @@ dependencies = [
 
 [[package]]
 name = "memchr"
-version = "2.5.0"
+version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
+checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
 name = "memoffset"
@@ -2936,7 +2951,7 @@ dependencies = [
  "hmac",
  "lazy_static",
  "log",
- "logging",
+ "logging 0.1.0 (git+https://github.com/confidential-filesystems/kata-containers?branch=cc-0.8.0-filesystem)",
  "openssl",
  "pin-project-lite",
  "protobuf 3.2.0",
@@ -3889,13 +3904,14 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.8.1"
+version = "1.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af83e617f331cc6ae2da5443c602dfa5af81e517212d9d611a5b3ba1777b5370"
+checksum = "4219d74c6b67a3654a9fbebc4b419e22126d13d2f3c4a07ee0cb61ff79a79619"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-syntax 0.7.1",
+ "regex-automata 0.4.7",
+ "regex-syntax 0.8.4",
 ]
 
 [[package]]
@@ -3908,6 +3924,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex-automata"
+version = "0.4.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38caf58cc5ef2fed281f89292ef23f6365465ed9a41b7a7754eb4e26496c92df"
+dependencies = [
+ "aho-corasick",
+ "memchr",
+ "regex-syntax 0.8.4",
+]
+
+[[package]]
 name = "regex-syntax"
 version = "0.6.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3915,9 +3942,9 @@ checksum = "f162c6dd7b008981e4d40210aca20b4bd0f9b60ca9271061b07f78537722f2e1"
 
 [[package]]
 name = "regex-syntax"
-version = "0.7.1"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5996294f19bd3aae0453a862ad728f60e6600695733dd5df01da90c54363a3c"
+checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 
 [[package]]
 name = "reqwest"
