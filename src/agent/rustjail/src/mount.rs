@@ -210,6 +210,7 @@ pub fn init_rootfs(
 
     let mut bind_mount_dev = false;
     for m in &spec.mounts {
+        log_child!(cfd_log, "init_rootfs spec.mounts m = {:?}", m);
         let (mut flags, pgflags, data) = parse_mount(m);
         if !m.destination.starts_with('/') || m.destination.contains("..") {
             return Err(anyhow!(
@@ -254,13 +255,17 @@ pub fn init_rootfs(
             // remount
             if m.r#type == "bind" && !pgflags.is_empty() {
                 let dest = secure_join(rootfs, &m.destination);
+                log_child!(cfd_log, "again remount dest: {:?} flag: {:?}", dest.as_str(), pgflags);
                 mount(
                     None::<&str>,
                     dest.as_str(),
                     None::<&str>,
                     pgflags,
                     None::<&str>,
-                )?;
+                ).map_err(|e| {
+                    log_child!(cfd_log, "again remount error: {:?}", e);
+                    e
+                })?;
             }
         }
     }
@@ -854,12 +859,19 @@ fn mount_from(
             );
         }
     }
+    // if src start with /run/kata-containers/shared/containers add MS_NOEXEC to flags
+    let mut mount_flag = flags;
+    if m.r#type.as_str() == "bind" && src.as_str().starts_with("/run/kata-containers/shared/containers/") {
+        mount_flag |= MsFlags::MS_NOEXEC;
+        log_child!(cfd_log, "mount_from mount add MS_NOEXEC");
+    }
 
+    log_child!(cfd_log, "mount_from mount src: {:?} dest: {:?} flag: {:?}, data: {:?}", src.as_str(), dest.as_str(), mount_flag, d.as_str());
     mount(
         Some(src.as_str()),
         dest.as_str(),
         Some(m.r#type.as_str()),
-        flags,
+        mount_flag,
         Some(d.as_str()),
     )
     .map_err(|e| {
@@ -881,11 +893,12 @@ fn mount_from(
                 | MsFlags::MS_SLAVE),
         )
     {
+        log_child!(cfd_log, "mount_from remount src: {:?} dest: {:?} flag: {:?}", dest.as_str(), dest.as_str(), mount_flag | MsFlags::MS_REMOUNT);
         mount(
             Some(dest.as_str()),
             dest.as_str(),
             None::<&str>,
-            flags | MsFlags::MS_REMOUNT,
+            mount_flag | MsFlags::MS_REMOUNT,
             None::<&str>,
         )
         .map_err(|e| {
@@ -1032,6 +1045,7 @@ pub fn finish_rootfs(cfd_log: RawFd, spec: &Spec, process: &Process) -> Result<(
 
     for m in spec.mounts.iter() {
         if m.destination == "/dev" {
+            log_child!(cfd_log, "finish_rootfs spec.mounts m = {:?}", m);
             let (flags, _, _) = parse_mount(m);
             if flags.contains(MsFlags::MS_RDONLY) {
                 mount(
