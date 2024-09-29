@@ -859,19 +859,13 @@ fn mount_from(
             );
         }
     }
-    // if src start with /run/kata-containers/shared/containers add MS_NOEXEC to flags
-    let mut mount_flag = flags;
-    if m.r#type.as_str() == "bind" && src.as_str().starts_with("/run/kata-containers/shared/containers/") {
-        mount_flag |= MsFlags::MS_NOEXEC;
-        log_child!(cfd_log, "mount_from mount add MS_NOEXEC");
-    }
 
-    log_child!(cfd_log, "mount_from mount src: {:?} dest: {:?} flag: {:?}, data: {:?}", src.as_str(), dest.as_str(), mount_flag, d.as_str());
+    log_child!(cfd_log, "mount_from mount src: {:?} dest: {:?} flag: {:?}, data: {:?}", src.as_str(), dest.as_str(), flags, d.as_str());
     mount(
         Some(src.as_str()),
         dest.as_str(),
         Some(m.r#type.as_str()),
-        mount_flag,
+        flags,
         Some(d.as_str()),
     )
     .map_err(|e| {
@@ -893,16 +887,16 @@ fn mount_from(
                 | MsFlags::MS_SLAVE),
         )
     {
-        log_child!(cfd_log, "mount_from remount src: {:?} dest: {:?} flag: {:?}", dest.as_str(), dest.as_str(), mount_flag | MsFlags::MS_REMOUNT);
+        log_child!(cfd_log, "mount_from remount src: {:?} dest: {:?} flag: {:?}", dest.as_str(), dest.as_str(), flags | MsFlags::MS_REMOUNT);
         mount(
             Some(dest.as_str()),
             dest.as_str(),
             None::<&str>,
-            mount_flag | MsFlags::MS_REMOUNT,
+            flags | MsFlags::MS_REMOUNT,
             None::<&str>,
         )
         .map_err(|e| {
-            log_child!(cfd_log, "remout {}: {:?}", dest.as_str(), e);
+            log_child!(cfd_log, "remount {}: {:?}", dest.as_str(), e);
             e
         })?;
     }
@@ -1044,8 +1038,8 @@ pub fn finish_rootfs(cfd_log: RawFd, spec: &Spec, process: &Process) -> Result<(
     }
 
     for m in spec.mounts.iter() {
+        log_child!(cfd_log, "finish_rootfs spec.mounts m = {:?}", m);
         if m.destination == "/dev" {
-            log_child!(cfd_log, "finish_rootfs spec.mounts m = {:?}", m);
             let (flags, _, _) = parse_mount(m);
             if flags.contains(MsFlags::MS_RDONLY) {
                 mount(
@@ -1056,6 +1050,21 @@ pub fn finish_rootfs(cfd_log: RawFd, spec: &Spec, process: &Process) -> Result<(
                     None::<&str>,
                 )?;
             }
+        }
+
+        if m.r#type.as_str() == "bind" {
+            let (flags, _, _) = parse_mount(m);
+            log_child!(cfd_log, "finish_rootfs mount add MS_NOEXEC");
+            mount(
+                Some(m.destination.as_str()),
+                m.destination.as_str(),
+                None::<&str>,
+                flags | MsFlags::MS_NOEXEC | MsFlags::MS_REMOUNT,
+                None::<&str>,
+            ).map_err(|e| {
+                log_child!(cfd_log, "finish_rootfs remount {}: {:?}", m.destination.as_str(), e);
+                e
+            })?;
         }
     }
 
