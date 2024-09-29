@@ -508,7 +508,10 @@ fn scan_scsi_bus(scsi_addr: &str) -> Result<()> {
 
         let scan_path = PathBuf::from(&format!("{}/{}/{}", SYSFS_SCSI_HOST_PATH, host_str, "scan"));
 
-        fs::write(scan_path, scan_data)?;
+        fs::write(scan_path.clone(), scan_data).map_err(|e| {
+            info!(sl(), "scan_scsi_bus path: {:?}: err: {:?}", scan_path, e);
+            e
+        })?;
     }
 
     Ok(())
